@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>Pig开源项目学习-package-info.java的作用</title>
+      <link href="/liukai/2023/05/10/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%AD%A6%E4%B9%A0-package-info-java%E7%9A%84%E4%BD%9C%E7%94%A8/"/>
+      <url>/liukai/2023/05/10/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%AD%A6%E4%B9%A0-package-info-java%E7%9A%84%E4%BD%9C%E7%94%A8/</url>
+      
+        <content type="html"><![CDATA[<h1 id="package-info-java的作用"><a href="#package-info-java的作用" class="headerlink" title="package-info.java的作用"></a>package-info.java的作用</h1><blockquote><p>摘要:</p><p>本文主要介绍Java中一种特殊的.java后缀java文件package-info.java作用</p></blockquote><h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1 介绍"></a>1 介绍</h2><blockquote><p>作用:</p><ul><li><strong>为标注在包上的注解Annotation提供便利</strong> (我们可以统一处理该注解包下的所有类，比如初始化，检查等等)</li><li><strong>声明友好类和包常量</strong> </li><li><strong>提供包的整体注释说明</strong></li></ul><p>概括:</p><p>pacakge-info.java是一个Java文件，可以添加到任何的Java源码包中。pacakge-info.java的目标是提供一个包级的文档说明或者是包级的注释。</p></blockquote><blockquote><p>pacakge-info.java文件中，<strong>唯一要求包含的内容是包的声明语句</strong>，比如:</p></blockquote><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* This is domain module, the core business logic is implemented here.</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">package</span> com.rickie.tracking.domain;</span><br></pre></td></tr></table></figure><h2 id="2-创建方式"><a href="#2-创建方式" class="headerlink" title="2 创建方式"></a>2 创建方式</h2><blockquote><p>IDEA中创建方式截图如下:</p></blockquote><p><img src="https://gitee.com/mrkay0313/images/raw/master/img/20230510154945.png"></p><h2 id="3-友链"><a href="#3-友链" class="headerlink" title="3 友链"></a>3 友链</h2><blockquote><p>详情参考:</p><p><a href="https://cloud.tencent.com/developer/beta/article/1874790">https://cloud.tencent.com/developer/beta/article/1874790</a></p></blockquote>]]></content>
+      
+      
+      <categories>
+          
+          <category> Pig开源项目 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 特殊java文件 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Pig开源项目学习-git-commit-id-maven-plugin插件</title>
       <link href="/liukai/2023/05/10/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%AD%A6%E4%B9%A0-git-commit-id-maven-plugin%E6%8F%92%E4%BB%B6/"/>
       <url>/liukai/2023/05/10/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%AD%A6%E4%B9%A0-git-commit-id-maven-plugin%E6%8F%92%E4%BB%B6/</url>
