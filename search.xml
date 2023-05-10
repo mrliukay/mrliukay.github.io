@@ -4,6 +4,56 @@
   
     
     <entry>
+      <title>Pig开源项目学习-git-commit-id-maven-plugin插件</title>
+      <link href="/liukai/2023/05/10/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%AD%A6%E4%B9%A0-git-commit-id-maven-plugin%E6%8F%92%E4%BB%B6/"/>
+      <url>/liukai/2023/05/10/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E5%AD%A6%E4%B9%A0-git-commit-id-maven-plugin%E6%8F%92%E4%BB%B6/</url>
+      
+        <content type="html"><![CDATA[<h1 id="git-commit-id-maven-plugin插件简介"><a href="#git-commit-id-maven-plugin插件简介" class="headerlink" title="git-commit-id-maven-plugin插件简介"></a>git-commit-id-maven-plugin插件简介</h1><blockquote><p>摘要</p><p>本篇文章主要介绍本人正在学习的一个分布式开源项目所设计的技术 <strong>git-commit-id-maven-plugin</strong>插件.</p><p>对于此插件我们实际中只需要知道它是什么怎么用即可,不作为重点记录对象.</p></blockquote><h2 id="1-简介"><a href="#1-简介" class="headerlink" title="1 简介"></a>1 简介</h2><blockquote><p>This plugin makes basic repository information available through maven resources. This can be used to display<br>“what version is this?” or “who has deployed this and when, from which branch?” information at runtime, making<br>it easy to find things like “oh, that isn’t deployed yet, I’ll test it tomorrow” and making both testers and<br>developers life easier. See <a href="https://github.com/git-commit-id/git-commit-id-maven-plugin">https://github.com/git-commit-id/git-commit-id-maven-plugin</a></p><p>翻译过来其实意思很简单:就是帮助开发人员清楚的看到打包部署的一些基本信息,比如谁在什么时间部署的哪一个分支等等;</p><p>具体详细的信息我们其实可以参考其github地址:</p><p><a href="https://github.com/git-commit-id/git-commit-id-maven-plugin">https://github.com/git-commit-id/git-commit-id-maven-plugin</a></p></blockquote><h2 id="2-maven依赖"><a href="#2-maven依赖" class="headerlink" title="2 maven依赖"></a>2 maven依赖</h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--打包jar 与git commit 关联插件--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.github.git-commit-id<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>git-commit-id-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;git.commit.plugin&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>get-the-git-infos<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>revision<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>initialize<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">failOnNoGitDirectory</span>&gt;</span>false<span class="tag">&lt;/<span class="name">failOnNoGitDirectory</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">generateGitPropertiesFile</span>&gt;</span>true<span class="tag">&lt;/<span class="name">generateGitPropertiesFile</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--因为项目定制了jackson的日期时间序列化/反序列化格式，</span></span><br><span class="line"><span class="comment">因此这里要进行配置,不然通过management.info.git.mode=full进行完整git信息监控时会存在问题</span></span><br><span class="line"><span class="comment"> --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dateFormat</span>&gt;</span>yyyy-MM-dd HH:mm:ss<span class="tag">&lt;/<span class="name">dateFormat</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">includeOnlyProperties</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">includeOnlyProperty</span>&gt;</span>^git.build.(time|version)$<span class="tag">&lt;/<span class="name">includeOnlyProperty</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">includeOnlyProperty</span>&gt;</span>^git.commit.(id|message|time).*$<span class="tag">&lt;/<span class="name">includeOnlyProperty</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">includeOnlyProperties</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure><h2 id="3-使用实例"><a href="#3-使用实例" class="headerlink" title="3 使用实例"></a>3 使用实例</h2><blockquote><p>使用示例其实可以参考<a href="https://gitee.com/log4j/pig">Pig开源</a>项目的使用也可以百度搜索相关内容,或者到管网查看使用教程</p><p>类似文章连接:</p><p><a href="https://blog.csdn.net/u010979642/article/details/107810883">https://blog.csdn.net/u010979642/article/details/107810883</a></p></blockquote>]]></content>
+      
+      
+      <categories>
+          
+          <category> Pig开源项目 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 插件 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>订单超时解决方案-RocketMQ延迟消息</title>
+      <link href="/liukai/2023/04/21/%E8%AE%A2%E5%8D%95%E8%B6%85%E6%97%B6%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-RocketMQ%E5%BB%B6%E8%BF%9F%E6%B6%88%E6%81%AF/"/>
+      <url>/liukai/2023/04/21/%E8%AE%A2%E5%8D%95%E8%B6%85%E6%97%B6%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-RocketMQ%E5%BB%B6%E8%BF%9F%E6%B6%88%E6%81%AF/</url>
+      
+        <content type="html"><![CDATA[<h1 id="订单超时解决方案RocketMQ延时消息"><a href="#订单超时解决方案RocketMQ延时消息" class="headerlink" title="订单超时解决方案RocketMQ延时消息"></a>订单超时解决方案RocketMQ延时消息</h1><blockquote><p>摘要:</p><p>本文主要介绍RocketMQ延时消息解决订单超时问题</p></blockquote><h2 id="1-RocketMQ简介"><a href="#1-RocketMQ简介" class="headerlink" title="1 RocketMQ简介"></a>1 RocketMQ简介</h2><blockquote><p>可以参考阿里云社区的这篇文章,写的很详细,并带有实际举例说明:</p><p><a href="https://developer.aliyun.com/article/780968">https://developer.aliyun.com/article/780968</a></p></blockquote><h2 id="2-延时消息解决订单超时问题"><a href="#2-延时消息解决订单超时问题" class="headerlink" title="2 延时消息解决订单超时问题"></a>2 延时消息解决订单超时问题</h2><blockquote></blockquote>]]></content>
+      
+      
+      <categories>
+          
+          <category> 分布式组件 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> MQ </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>订单超时解决方案-RabbitMQ死信队列</title>
       <link href="/liukai/2023/04/20/%E8%AE%A2%E5%8D%95%E8%B6%85%E6%97%B6%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-RabbitMQ%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97/"/>
       <url>/liukai/2023/04/20/%E8%AE%A2%E5%8D%95%E8%B6%85%E6%97%B6%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-RabbitMQ%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97/</url>
