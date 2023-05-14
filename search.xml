@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>Pig开源项目-Gateway超时配置</title>
+      <link href="/liukai/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-Gateway%E8%B6%85%E6%97%B6%E9%85%8D%E7%BD%AE/"/>
+      <url>/liukai/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-Gateway%E8%B6%85%E6%97%B6%E9%85%8D%E7%BD%AE/</url>
+      
+        <content type="html"><![CDATA[<h1 id="网关超时配置"><a href="#网关超时配置" class="headerlink" title="网关超时配置"></a>网关超时配置</h1><blockquote><p>摘要:</p><p>本篇文章主要介绍Gateway网关超时配置</p></blockquote><h2 id="1-超时配置概念"><a href="#1-超时配置概念" class="headerlink" title="1 超时配置概念"></a>1 超时配置概念</h2><blockquote><p>路由超时配置可以为所有路由配置Http超时（响应和连接），并为每个特定路由覆盖Http超时。</p><p>简单来说就是</p><p>我们可以给网关配置<strong>全局超时</strong> 和 <strong>特定路由超时</strong></p><p>并且如果前者配置了后者也配置,那么后者会覆盖前者的超时配置;</p></blockquote><h2 id="2-具体配置"><a href="#2-具体配置" class="headerlink" title="2 具体配置"></a>2 具体配置</h2><blockquote><p>下面是代码实现超时配置的方案</p></blockquote><h3 id="2-1-全局超时配置"><a href="#2-1-全局超时配置" class="headerlink" title="2.1 全局超时配置"></a>2.1 全局超时配置</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">httpclient:</span></span><br><span class="line">        <span class="attr">connect-timeout:</span> <span class="number">1000</span></span><br><span class="line">        <span class="attr">response-timeout:</span> <span class="string">10s</span></span><br></pre></td></tr></table></figure><blockquote><ul><li><strong>connect-timeout 必须以毫秒为单位指定连接超时时间.</strong></li><li><strong>response-timeout 必须指定为java.time.Duration</strong></li></ul></blockquote><h3 id="2-2-特定路由超时配置"><a href="#2-2-特定路由超时配置" class="headerlink" title="2.2 特定路由超时配置"></a>2.2 特定路由超时配置</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">id:</span> <span class="string">pig-upms</span>      <span class="comment"># 唯一的服务ID</span></span><br><span class="line">  <span class="attr">uri:</span> <span class="string">lb://pig-upms</span> <span class="comment"># 注册中心的服务名称，实现负载均衡</span></span><br><span class="line">  <span class="attr">predicates:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">Path=/admin/demo</span>  <span class="comment">#所有业务的请求前缀</span></span><br><span class="line">  <span class="attr">metadata:</span></span><br><span class="line">    <span class="attr">response-timeout:</span> <span class="number">200</span></span><br><span class="line">    <span class="attr">connect-timeout:</span> <span class="number">200</span></span><br></pre></td></tr></table></figure><blockquote><p>可以通过路由的metadata以下两个参数配置每个路由超时：</p><ul><li><strong>connect-timeout 必须以毫秒为单位指定连接超时时间.</strong></li><li><strong>response-timeout 必须以毫秒为单位指定响应超时时间.</strong></li></ul></blockquote><h2 id="3-友链"><a href="#3-友链" class="headerlink" title="3 友链"></a>3 友链</h2><blockquote><p><a href="https://blog.csdn.net/abu935009066/article/details/112264485">网关 Spring Cloud Gateway HTTP超时配置</a></p><p><a href="https://www.yuque.com/pig4cloud/pig/gpltt6">网关超时</a></p></blockquote>]]></content>
+      
+      
+      <categories>
+          
+          <category> 分布式组件 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Gateway超时配置 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Pig开源项目-网关限流</title>
       <link href="/liukai/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-%E7%BD%91%E5%85%B3%E9%99%90%E6%B5%81/"/>
       <url>/liukai/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-%E7%BD%91%E5%85%B3%E9%99%90%E6%B5%81/</url>
