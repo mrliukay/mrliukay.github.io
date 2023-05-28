@@ -4,6 +4,44 @@
   
     
     <entry>
+      <title>缓存Redis相关功能</title>
+      <link href="/liukai/2023/05/25/%E7%BC%93%E5%AD%98Redis%E7%9B%B8%E5%85%B3%E5%8A%9F%E8%83%BD/"/>
+      <url>/liukai/2023/05/25/%E7%BC%93%E5%AD%98Redis%E7%9B%B8%E5%85%B3%E5%8A%9F%E8%83%BD/</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>OpenFeign</title>
+      <link href="/liukai/2023/05/25/OpenFeign/"/>
+      <url>/liukai/2023/05/25/OpenFeign/</url>
+      
+        <content type="html"><![CDATA[<h1 id="OpenFeign记录"><a href="#OpenFeign记录" class="headerlink" title="OpenFeign记录"></a>OpenFeign记录</h1><blockquote><p>摘要:</p><p>本篇博客主要接受啊OpenFeign的相关知识点</p></blockquote><h2 id="1-什么是Feign"><a href="#1-什么是Feign" class="headerlink" title="1 什么是Feign"></a>1 什么是Feign</h2><blockquote><p>在介绍Feign之前先介绍一下Feign</p><p><strong>Feign集成了Ribbon、RestTemplate实现了负载均衡的执行Http调用，只不过对原有的方式（Ribbon+RestTemplate）进行了封装</strong>，开发者不必手动使用RestTemplate调服务，而是定义一个接口，在这个接口中标注一个注解即可完成服务调用，这样更加符合面向接口编程的宗旨，简化了开发。</p><p>OpenFeign其实就是Feign的一种升级罢了。但是Feign后期停止了迭代，所以现在很多新企业和公司开始使用OpenFeign，虽然目前也有很多企业也在使用Feign。</p></blockquote><h2 id="2-OpenFeign"><a href="#2-OpenFeign" class="headerlink" title="2  OpenFeign"></a>2  OpenFeign</h2><blockquote><p>OpenFeign在原来的Feign的基础山增加了支持SpringMVC的注解, 比如@RequestMapping(“&#x2F;path”)注解, 此外配合@FeignClient注解可以可以通过动态代理的形式产生实现类,调用其他服务的接口.</p></blockquote><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FeignClient(contextId = &quot;remoteDeptService&quot;, value = ServiceNameConstants.UMPS_SERVICE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">RemoteDeptService</span> &#123;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 查收子级id列表</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> 返回子级id列表</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@GetMapping(value = &quot;/dept/child-id/&#123;deptId&#125;&quot;, headers = SecurityConstants.HEADER_FROM_IN)</span></span><br><span class="line">R&lt;List&lt;Long&gt;&gt; <span class="title function_">listChildDeptId</span><span class="params">(<span class="meta">@PathVariable(&quot;deptId&quot;)</span> Long deptId)</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h3 id="2-1-OpenFeign和Feign的区别"><a href="#2-1-OpenFeign和Feign的区别" class="headerlink" title="2.1  OpenFeign和Feign的区别"></a>2.1  OpenFeign和Feign的区别</h3><blockquote><p>上面介绍其实已经知道区别所在了</p></blockquote><p><img src="https://gitee.com/mrkay0313/images/raw/master/img/20230528175933.png"></p><h3 id="2-2-OpenFeign如何传参"><a href="#2-2-OpenFeign如何传参" class="headerlink" title="2.2 OpenFeign如何传参"></a>2.2 OpenFeign如何传参</h3><blockquote><p>传递json形式参数:</p><p><strong>使用@RequestBody注解进行json形式传参</strong></p></blockquote><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FeignClient(contextId = &quot;remoteDeptService&quot;, value = ServiceNameConstants.UMPS_SERVICE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">RemoteDeptService</span> &#123;</span><br><span class="line"><span class="meta">@PostMapping(&quot;/openfeign/provider/order2&quot;)</span></span><br><span class="line">   Order <span class="title function_">createOrder2</span><span class="params">(<span class="meta">@RequestBody</span> Order order)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><blockquote><p>传递POJO表单形式参数:</p><p><strong>OpenFeign提供了@SpringQueryMap注解来传递表单形式参数</strong></p></blockquote><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FeignClient(contextId = &quot;remoteDeptService&quot;, value = ServiceNameConstants.UMPS_SERVICE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">RemoteDeptService</span> &#123;</span><br><span class="line"><span class="meta">@GetMapping(&quot;/openfeign/provider/order1&quot;)</span></span><br><span class="line">   Order <span class="title function_">createOrder1</span><span class="params">(<span class="meta">@SpringQueryMap</span> Order order)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><blockquote><p>URL中传参:</p><p><strong>我们可以使用@PathVariable注解来完成URL中参数的传递</strong></p></blockquote><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FeignClient(contextId = &quot;remoteDeptService&quot;, value = ServiceNameConstants.UMPS_SERVICE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">RemoteDeptService</span> &#123;</span><br><span class="line"><span class="meta">@GetMapping(&quot;/openfeign/provider/&#123;id&#125;&quot;)</span>x</span><br><span class="line">   Order <span class="title function_">createOrder1</span><span class="params">(<span class="meta">@PathVariable(&quot;id&quot;)</span> Long id)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><blockquote><p>普通表达传参</p><p><strong>使用@RequestParam注解解决</strong></p></blockquote><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@FeignClient(contextId = &quot;remoteDeptService&quot;, value = ServiceNameConstants.UMPS_SERVICE)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">RemoteDeptService</span> &#123;</span><br><span class="line"><span class="meta">@GetMapping(&quot;/openfeign/provider&quot;)</span>x</span><br><span class="line">   Order <span class="title function_">createOrder1</span><span class="params">(<span class="meta">@RequestParam(&quot;id&quot;)</span> Long id,<span class="meta">@RequestParam(&quot;name&quot;)</span> String name)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> 分布式组件 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> openfeign </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>SPEL表达式</title>
       <link href="/liukai/2023/05/20/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/"/>
       <url>/liukai/2023/05/20/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/</url>
