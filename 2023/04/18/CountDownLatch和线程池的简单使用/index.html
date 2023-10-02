@@ -18,7 +18,7 @@
   localSearch: {"path":"/liukai/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
   translate: undefined,
   noticeOutdate: undefined,
-  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  highlight: undefined,
   copy: {
     success: '复制成功',
     error: '复制错误',
@@ -189,12 +189,182 @@
 <p>文件中有超过10W个不规则图形组成的大的地图模型json(模型提供的地图map文件,单文件大小近80M,不规则图形的每一个点对应一个经纬度),我的任务就是判断DB表里的一些点,哪些在此大的地图map中(json图形中,不是点对点是点在地图范围内)</p>
 <p>解决此类问题单线程解决肯定不可行,所以就使用了多线程,当时需要拆分大的json文件,经过查阅资料了解到任务调度线程池更契合本次业务需求,最终选择使用CountDownLatch 线程计数器配合ScheduledExecutorService完成业务</p>
 </blockquote>
-<h3 id="3-1-简单罗列主要业务代码"><a href="#3-1-简单罗列主要业务代码" class="headerlink" title="3.1 简单罗列主要业务代码"></a>3.1 简单罗列主要业务代码</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PreviewModelServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">PreviewModelService</span> &#123;</span><br><span class="line">     <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Integer <span class="title function_">callBack</span><span class="params">(HttpServletRequest request)</span> &#123;</span><br><span class="line">        <span class="type">JSONObject</span> <span class="variable">jsonObject</span> <span class="operator">=</span> ModelGetBodyParamsUtil.getBodyParamToJsonObj(request);</span><br><span class="line">        <span class="keyword">if</span> (jsonObject != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="type">String</span> <span class="variable">taskId</span> <span class="operator">=</span> jsonObject.getStr(<span class="string">&quot;taskId&quot;</span>);</span><br><span class="line">            <span class="type">String</span> <span class="variable">status</span> <span class="operator">=</span> jsonObject.getStr(<span class="string">&quot;status&quot;</span>);</span><br><span class="line">            <span class="comment">//阻塞线程执行 保证多线程执行期间不会有其他线程进入</span></span><br><span class="line">            <span class="keyword">synchronized</span> (<span class="built_in">this</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (ModelDealEnum.DEAL_STATUS_SUCCESS.getValue().equals(status)) &#123;</span><br><span class="line">                    <span class="comment">//根据idx查找是已经推送获取过结果</span></span><br><span class="line">                    List&lt;ModelAnalyzeResultIdx&gt; pushedList = modelAnalyzeResultIdxMapper.selectPushedDatasByIdx(taskId);</span><br><span class="line">                    <span class="keyword">if</span> (CollUtil.isNotEmpty(pushedList)) &#123;</span><br><span class="line">                        <span class="comment">//解析数据并入库</span></span><br><span class="line">                        <span class="type">ModelAnalyzeResultIdx</span> <span class="variable">source</span> <span class="operator">=</span> pushedList.get(<span class="number">0</span>);</span><br><span class="line">                        <span class="keyword">try</span> &#123;</span><br><span class="line">                            <span class="comment">//获取floodRisk积水风险统计geoJson(多线程进行处理GeoJson)</span></span><br><span class="line">                            List&lt;WaterPoint&gt; waterPoints = analyzeService.analyzeGeoJsonDatas(source);</span><br><span class="line">                        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                            log.error(<span class="string">&quot;模型解析错误&quot;</span>, e);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="3-1-简单罗列主要业务代码"><a href="#3-1-简单罗列主要业务代码" class="headerlink" title="3.1 简单罗列主要业务代码"></a>3.1 简单罗列主要业务代码</h3><pre><code class="java">public class PreviewModelServiceImpl implements PreviewModelService &#123;
+     @Override
+    public Integer callBack(HttpServletRequest request) &#123;
+        JSONObject jsonObject = ModelGetBodyParamsUtil.getBodyParamToJsonObj(request);
+        if (jsonObject != null) &#123;
+            String taskId = jsonObject.getStr(&quot;taskId&quot;);
+            String status = jsonObject.getStr(&quot;status&quot;);
+            //阻塞线程执行 保证多线程执行期间不会有其他线程进入
+            synchronized (this) &#123;
+                if (ModelDealEnum.DEAL_STATUS_SUCCESS.getValue().equals(status)) &#123;
+                    //根据idx查找是已经推送获取过结果
+                    List&lt;ModelAnalyzeResultIdx&gt; pushedList = modelAnalyzeResultIdxMapper.selectPushedDatasByIdx(taskId);
+                    if (CollUtil.isNotEmpty(pushedList)) &#123;
+                        //解析数据并入库
+                        ModelAnalyzeResultIdx source = pushedList.get(0);
+                        try &#123;
+                            //获取floodRisk积水风险统计geoJson(多线程进行处理GeoJson)
+                            List&lt;WaterPoint&gt; waterPoints = analyzeService.analyzeGeoJsonDatas(source);
+                        &#125; catch (Exception e) &#123;
+                            log.error(&quot;模型解析错误&quot;, e);
+                        &#125;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+        return 0;
+    &#125;
+&#125;
+</code></pre>
+<pre><code class="java">package com.keepsoft.devbase.service.impl;
 
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> com.keepsoft.devbase.service.impl;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> cn.hutool.core.collection.CollUtil;</span><br><span class="line"><span class="keyword">import</span> cn.hutool.core.util.StrUtil;</span><br><span class="line"><span class="keyword">import</span> cn.hutool.crypto.digest.MD5;</span><br><span class="line"><span class="keyword">import</span> cn.hutool.http.HttpResponse;</span><br><span class="line"><span class="keyword">import</span> cn.hutool.http.HttpUtil;</span><br><span class="line"><span class="keyword">import</span> cn.hutool.json.JSONArray;</span><br><span class="line"><span class="keyword">import</span> cn.hutool.json.JSONObject;</span><br><span class="line"><span class="keyword">import</span> cn.hutool.json.JSONUtil;</span><br><span class="line"><span class="keyword">import</span> com.baomidou.dynamic.datasource.annotation.DS;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.entity.ModelAnalyzeResultIdx;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.entity.ModelDataPng;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.entity.ModelFileResultIdx;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.entity.WaterPoint;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.enums.ModelDealEnum;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.mapper.ModelAnalyzeResultIdxMapper;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.mapper.ModelDataPngMapper;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.mapper.ModelFileResultIdxMapper;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.mapper.WaterPointMapper;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.service.AnalyzeService;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.task.ModelGeoJsonDealTask;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.utils.ConfigUtils;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.utils.GeoJsonUtil;</span><br><span class="line"><span class="keyword">import</span> com.keepsoft.devbase.utils.ZipFileUtils;</span><br><span class="line"><span class="keyword">import</span> lombok.extern.slf4j.Slf4j;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.lang3.concurrent.BasicThreadFactory;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Value;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Service;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.annotation.Resource;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.CountDownLatch;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ScheduledExecutorService;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ScheduledThreadPoolExecutor;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2022/11/24 10:05</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@SuppressWarnings(&quot;all&quot;)</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AnalyzeServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">AnalyzeService</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 创建线程池</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">ScheduledExecutorService</span> <span class="variable">executorService</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ScheduledThreadPoolExecutor</span>(<span class="number">12</span>, <span class="keyword">new</span> <span class="title class_">BasicThreadFactory</span>.Builder().namingPattern(<span class="string">&quot;model-geojson-analyze-pool-%d&quot;</span>).daemon(<span class="literal">true</span>).build());</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="meta">@DS(value = &quot;hsyb&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;WaterPoint&gt; <span class="title function_">analyzeGeoJsonDatas</span><span class="params">(ModelAnalyzeResultIdx source)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="comment">//coding ...</span></span><br><span class="line">        <span class="comment">//需要多线程处理</span></span><br><span class="line">        <span class="keyword">if</span> (GeoJsonUtil.needMultiThreadDeal(allReseaus)) &#123;</span><br><span class="line">            List&lt;List&lt;List&lt;JSONArray&gt;&gt;&gt; splitContainer = GeoJsonUtil.split(allReseaus, <span class="number">20000</span>);</span><br><span class="line">            <span class="comment">//计数器:所有子线程开始处理数据集等待计数结束之后主线程开始执行</span></span><br><span class="line">            List&lt;WaterPoint&gt; waterPoints = waterPointMapper.selectList(<span class="literal">null</span>);</span><br><span class="line">            <span class="type">CountDownLatch</span> <span class="variable">latch</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CountDownLatch</span>(splitContainer.size());</span><br><span class="line">            List&lt;ModelGeoJsonDealTask&gt; taskList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;ModelGeoJsonDealTask&gt;(splitContainer.size());</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; splitContainer.size(); i++) &#123;</span><br><span class="line">                <span class="type">ModelGeoJsonDealTask</span> <span class="variable">task_i</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ModelGeoJsonDealTask</span>(<span class="literal">true</span>, latch, splitContainer.get(i), waterPoints);</span><br><span class="line">                taskList.add(task_i);</span><br><span class="line">                <span class="comment">//执行</span></span><br><span class="line">                executorService.submit(task_i);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//阻塞主线程</span></span><br><span class="line">            latch.await();</span><br><span class="line">            <span class="comment">//主线程开始处理</span></span><br><span class="line">            <span class="comment">//coding ...</span></span><br><span class="line">    		&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.digest.MD5;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.baomidou.dynamic.datasource.annotation.DS;
+import com.keepsoft.devbase.entity.ModelAnalyzeResultIdx;
+import com.keepsoft.devbase.entity.ModelDataPng;
+import com.keepsoft.devbase.entity.ModelFileResultIdx;
+import com.keepsoft.devbase.entity.WaterPoint;
+import com.keepsoft.devbase.enums.ModelDealEnum;
+import com.keepsoft.devbase.mapper.ModelAnalyzeResultIdxMapper;
+import com.keepsoft.devbase.mapper.ModelDataPngMapper;
+import com.keepsoft.devbase.mapper.ModelFileResultIdxMapper;
+import com.keepsoft.devbase.mapper.WaterPointMapper;
+import com.keepsoft.devbase.service.AnalyzeService;
+import com.keepsoft.devbase.task.ModelGeoJsonDealTask;
+import com.keepsoft.devbase.utils.ConfigUtils;
+import com.keepsoft.devbase.utils.GeoJsonUtil;
+import com.keepsoft.devbase.utils.ZipFileUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * GeoJson处理线程</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2022/12/1 9:25</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ModelGeoJsonDealTask</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 成功标识</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">success</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 线程计数器</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> CountDownLatch countDownLatch;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 待处理数据集</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;List&lt;JSONArray&gt;&gt; toDealList;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 内涝点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;WaterPoint&gt; waterPoints;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 线程得到的在网格内的内涝点</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;WaterPoint&gt; inReseauWaterPoints = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;WaterPoint&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 最终结果容器</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> List&lt;List&lt;String&gt;&gt; resultList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;List&lt;String&gt;&gt;();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ModelGeoJsonDealTask</span><span class="params">(<span class="type">boolean</span> success, CountDownLatch countDownLatch, List&lt;List&lt;JSONArray&gt;&gt; toDealList, List&lt;WaterPoint&gt; waterPoints)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.success = success;</span><br><span class="line">        <span class="built_in">this</span>.countDownLatch = countDownLatch;</span><br><span class="line">        <span class="built_in">this</span>.toDealList = toDealList;</span><br><span class="line">        <span class="built_in">this</span>.waterPoints = waterPoints;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">long</span> <span class="variable">stms</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">            log.info(<span class="string">&quot;======处理geojson线程：【&#123;&#125;】开始执行解析，当前时间(毫秒值)：【&#123;&#125;】&quot;</span>, Thread.currentThread().getName(), stms);</span><br><span class="line">            <span class="comment">//拼网格</span></span><br><span class="line">            GeoJsonUtil.spliceReseausAndDecidePointInReseau(toDealList, resultList, waterPoints, inReseauWaterPoints);</span><br><span class="line"></span><br><span class="line">            <span class="type">long</span> <span class="variable">endms</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">            <span class="type">long</span> <span class="variable">during</span> <span class="operator">=</span> (endms - stms) / <span class="number">1000</span>;</span><br><span class="line">            log.info(<span class="string">&quot;======处理geojson线程：【&#123;&#125;】解析执行结束，当前时间(毫秒值)：【&#123;&#125;ms】，用时：【&#123;&#125;s】&quot;</span>, Thread.currentThread().getName(), endms, during);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;处理geojson线程:【&#123;&#125;】,处理geojson发生异常:&quot;</span>, Thread.currentThread().getName(), e);</span><br><span class="line">            <span class="comment">//失败</span></span><br><span class="line">            success = <span class="literal">false</span>;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="comment">//计数器减1</span></span><br><span class="line">            countDownLatch.countDown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+/**
+ * @author liukai
+ * @date 2022/11/24 10:05
+ */
+@SuppressWarnings(&quot;all&quot;)
+@Slf4j
+@Service
+public class AnalyzeServiceImpl implements AnalyzeService &#123;
+    /**
+     * 创建线程池
+     */
+    private static final ScheduledExecutorService executorService = new ScheduledThreadPoolExecutor(12, new BasicThreadFactory.Builder().namingPattern(&quot;model-geojson-analyze-pool-%d&quot;).daemon(true).build());
+
+    @Override
+    @DS(value = &quot;hsyb&quot;)
+    public List&lt;WaterPoint&gt; analyzeGeoJsonDatas(ModelAnalyzeResultIdx source) throws Exception &#123;
+        //coding ...
+        //需要多线程处理
+        if (GeoJsonUtil.needMultiThreadDeal(allReseaus)) &#123;
+            List&lt;List&lt;List&lt;JSONArray&gt;&gt;&gt; splitContainer = GeoJsonUtil.split(allReseaus, 20000);
+            //计数器:所有子线程开始处理数据集等待计数结束之后主线程开始执行
+            List&lt;WaterPoint&gt; waterPoints = waterPointMapper.selectList(null);
+            CountDownLatch latch = new CountDownLatch(splitContainer.size());
+            List&lt;ModelGeoJsonDealTask&gt; taskList = new ArrayList&lt;ModelGeoJsonDealTask&gt;(splitContainer.size());
+            for (int i = 0; i &lt; splitContainer.size(); i++) &#123;
+                ModelGeoJsonDealTask task_i = new ModelGeoJsonDealTask(true, latch, splitContainer.get(i), waterPoints);
+                taskList.add(task_i);
+                //执行
+                executorService.submit(task_i);
+            &#125;
+            //阻塞主线程
+            latch.await();
+            //主线程开始处理
+            //coding ...
+            &#125;
+    &#125;
+&#125;
+</code></pre>
+<pre><code class="java">/**
+ * GeoJson处理线程
+ *
+ * @author liukai
+ * @date 2022/12/1 9:25
+ */
+@Slf4j
+@Data
+public class ModelGeoJsonDealTask implements Runnable &#123;
+    /**
+     * 成功标识
+     */
+    private boolean success = true;
+
+    /**
+     * 线程计数器
+     */
+    private CountDownLatch countDownLatch;
+
+    /**
+     * 待处理数据集
+     */
+    private List&lt;List&lt;JSONArray&gt;&gt; toDealList;
+
+    /**
+     * 内涝点
+     */
+    private List&lt;WaterPoint&gt; waterPoints;
+
+    /**
+     * 线程得到的在网格内的内涝点
+     */
+    private List&lt;WaterPoint&gt; inReseauWaterPoints = new ArrayList&lt;WaterPoint&gt;();
+
+    /**
+     * 最终结果容器
+     */
+    private List&lt;List&lt;String&gt;&gt; resultList = new ArrayList&lt;List&lt;String&gt;&gt;();
+
+
+    public ModelGeoJsonDealTask(boolean success, CountDownLatch countDownLatch, List&lt;List&lt;JSONArray&gt;&gt; toDealList, List&lt;WaterPoint&gt; waterPoints) &#123;
+        this.success = success;
+        this.countDownLatch = countDownLatch;
+        this.toDealList = toDealList;
+        this.waterPoints = waterPoints;
+    &#125;
+
+    @Override
+    public void run() &#123;
+        try &#123;
+            long stms = System.currentTimeMillis();
+            log.info(&quot;======处理geojson线程：【&#123;&#125;】开始执行解析，当前时间(毫秒值)：【&#123;&#125;】&quot;, Thread.currentThread().getName(), stms);
+            //拼网格
+            GeoJsonUtil.spliceReseausAndDecidePointInReseau(toDealList, resultList, waterPoints, inReseauWaterPoints);
+
+            long endms = System.currentTimeMillis();
+            long during = (endms - stms) / 1000;
+            log.info(&quot;======处理geojson线程：【&#123;&#125;】解析执行结束，当前时间(毫秒值)：【&#123;&#125;ms】，用时：【&#123;&#125;s】&quot;, Thread.currentThread().getName(), endms, during);
+        &#125; catch (Exception e) &#123;
+            log.error(&quot;处理geojson线程:【&#123;&#125;】,处理geojson发生异常:&quot;, Thread.currentThread().getName(), e);
+            //失败
+            success = false;
+        &#125; finally &#123;
+            //计数器减1
+            countDownLatch.countDown();
+        &#125;
+    &#125;
+&#125;
+</code></pre>
 <h2 id="4-结束语"><a href="#4-结束语" class="headerlink" title="4 结束语"></a>4 结束语</h2><blockquote>
 <p>本文只是见到那记录 ScheduledExecutorService 和 CountDownLatch 的使用具体详细概念并没有做详细学习,后期会多线程篇章里深入学习记录.</p>
 </blockquote>
@@ -297,7 +467,7 @@ document.addEventListener('pjax:error', (e) => {
   if (e.request.status === 404) {
     pjax.loadUrl('/404.html')
   }
-})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script>
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div>
         <style>
             [bg-lazy] {
                 background-image: none !important;
@@ -310,4 +480,4 @@ document.addEventListener('pjax:error', (e) => {
                 preloadRatio: 1,
                 processImages: null,
             };
-        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script></body></html>
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>

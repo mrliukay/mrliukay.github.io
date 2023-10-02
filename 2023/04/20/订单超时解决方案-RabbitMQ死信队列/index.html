@@ -17,7 +17,7 @@
   localSearch: {"path":"/liukai/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
   translate: undefined,
   noticeOutdate: undefined,
-  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  highlight: undefined,
   copy: {
     success: '复制成功',
     error: '复制错误',
@@ -204,22 +204,159 @@
 <p>理论的东西整理结束了下面就可以直接上代码和演示截图了</p>
 <p>下面是主要代码</p>
 </blockquote>
-<h3 id="2-1-配置死信队列死信交换机"><a href="#2-1-配置死信队列死信交换机" class="headerlink" title="2.1 配置死信队列死信交换机"></a>2.1 配置死信队列死信交换机</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 死信队列交换机配置</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/4/19 13:24</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DieExchangeQueueConfig</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 业务队列A</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@link</span> Queue &#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">busQueueA</span><span class="params">()</span> &#123;</span><br><span class="line">        Map&lt;String, Object&gt; args = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        <span class="comment">// 队列过期时间TTL,单位毫秒</span></span><br><span class="line">        args.put(<span class="string">&quot;x-message-ttl&quot;</span>, <span class="number">5000</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// x-dead-letter-exchange    这里声明当前队列绑定的死信交换机</span></span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-exchange&quot;</span>, RabbitMqConstant.DIE_AB_TOPIC_EXCHANGE_NAME);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// x-dead-letter-routing-key  这里声明当前队列的死信路由key</span></span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-routing-key&quot;</span>, RabbitRoutingKeyEnum.DIE_QUEUE_A_ROUTING_KEY.getValue());</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Queue</span>(RabbitMqConstant.BUS_QUEUE_A_NAME, <span class="literal">true</span>, <span class="literal">false</span>, <span class="literal">false</span>, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 业务队列AB的交换机</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@link</span> TopicExchange &#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> TopicExchange <span class="title function_">busAbTopicExchange</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">TopicExchange</span>(RabbitMqConstant.BUS_AB_TOPIC_EXCHANGE_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 业务队列A绑定到业务AB交换机</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@link</span> Binding &#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">bindBusTopicExchangeA</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder</span><br><span class="line">                <span class="comment">// 绑定队列</span></span><br><span class="line">                .bind(busQueueA())</span><br><span class="line">                <span class="comment">// 到交换机</span></span><br><span class="line">                .to(busAbTopicExchange())</span><br><span class="line">                .with(RabbitRoutingKeyEnum.BUS_QUEUE_A_ROUTING_KEY.getValue());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 死信队列A</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@link</span> Queue &#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">dieQueueA</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Queue</span>(RabbitMqConstant.DIE_QUEUE_A_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 死信交换机</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@link</span> TopicExchange &#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> TopicExchange <span class="title function_">dieAbTopicExchange</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">TopicExchange</span>(RabbitMqConstant.DIE_AB_TOPIC_EXCHANGE_NAME);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 死信队列A绑定死信交换机</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> &#123;<span class="doctag">@link</span> Binding &#125;</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">bindDieTopicExchangeA</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder</span><br><span class="line">                <span class="comment">// 绑定队列</span></span><br><span class="line">                .bind(dieQueueA())</span><br><span class="line">                <span class="comment">// 到交换机</span></span><br><span class="line">                .to(dieAbTopicExchange())</span><br><span class="line">                .with(RabbitRoutingKeyEnum.DIE_QUEUE_A_ROUTING_KEY.getValue());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="2-1-配置死信队列死信交换机"><a href="#2-1-配置死信队列死信交换机" class="headerlink" title="2.1 配置死信队列死信交换机"></a>2.1 配置死信队列死信交换机</h3><pre><code class="java">/**
+ * 死信队列交换机配置
+ *
+ * @author liukai
+ * @since 2023/4/19 13:24
+ */
+@Configuration
+public class DieExchangeQueueConfig &#123;
+    /**
+     * 业务队列A
+     *
+     * @return &#123;@link Queue &#125;
+     */
+    @Bean
+    public Queue busQueueA() &#123;
+        Map&lt;String, Object&gt; args = new HashMap&lt;&gt;();
+        // 队列过期时间TTL,单位毫秒
+        args.put(&quot;x-message-ttl&quot;, 5000);
 
-<h3 id="2-2-消费方监听"><a href="#2-2-消费方监听" class="headerlink" title="2.2 消费方监听"></a>2.2 消费方监听</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 死信队列消息监听消费者</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/4/19 17:11</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DieRabbitListener</span> &#123;</span><br><span class="line">    <span class="meta">@RabbitListener(queues = RabbitMqConstant.DIE_QUEUE_A_NAME)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">dieA</span><span class="params">(Map&lt;String, Object&gt; map)</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;消费者接收到死信队列A中的消息:&quot;</span> + map.toString());</span><br><span class="line">        <span class="comment">// 根据 订单ID查询DB更新订单状态,设置订单过期.增加库存...</span></span><br><span class="line">        <span class="comment">//coding... 这里后面单独列出一期订单秒杀业务博文再详细复述.</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        // x-dead-letter-exchange    这里声明当前队列绑定的死信交换机
+        args.put(&quot;x-dead-letter-exchange&quot;, RabbitMqConstant.DIE_AB_TOPIC_EXCHANGE_NAME);
 
-<h3 id="2-3-模拟生产方"><a href="#2-3-模拟生产方" class="headerlink" title="2.3 模拟生产方"></a>2.3 模拟生产方</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/rabbitmq/test&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RabbitMqTestController</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> RabbitMqTestService rabbitMqTestService;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@GetMapping(&quot;/send/message/topic/die/queue/a&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title function_">sendMessageTopicDieQueueA</span><span class="params">(String message)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> rabbitMqTestService.sendMessageTopicDieQueueA(message);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+        // x-dead-letter-routing-key  这里声明当前队列的死信路由key
+        args.put(&quot;x-dead-letter-routing-key&quot;, RabbitRoutingKeyEnum.DIE_QUEUE_A_ROUTING_KEY.getValue());
+        return new Queue(RabbitMqConstant.BUS_QUEUE_A_NAME, true, false, false, args);
+    &#125;
 
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RabbitMqTestServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">RabbitMqTestService</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> RabbitTemplate rabbitTemplate;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title function_">sendMessageTopicDieQueueA</span><span class="params">(String message)</span> &#123;</span><br><span class="line">        Map&lt;String, Object&gt; messageMap = getMessageMap(message);</span><br><span class="line">        rabbitTemplate.convertAndSend(RabbitMqConstant.BUS_AB_TOPIC_EXCHANGE_NAME, RabbitRoutingKeyEnum.BUS_QUEUE_A_ROUTING_KEY.getValue(), messageMap);</span><br><span class="line">        <span class="keyword">return</span> messageMap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    /**
+     * 业务队列AB的交换机
+     *
+     * @return &#123;@link TopicExchange &#125;
+     */
+    @Bean
+    public TopicExchange busAbTopicExchange() &#123;
+        return new TopicExchange(RabbitMqConstant.BUS_AB_TOPIC_EXCHANGE_NAME);
+    &#125;
 
+    /**
+     * 业务队列A绑定到业务AB交换机
+     *
+     * @return &#123;@link Binding &#125;
+     */
+    @Bean
+    public Binding bindBusTopicExchangeA() &#123;
+        return BindingBuilder
+                // 绑定队列
+                .bind(busQueueA())
+                // 到交换机
+                .to(busAbTopicExchange())
+                .with(RabbitRoutingKeyEnum.BUS_QUEUE_A_ROUTING_KEY.getValue());
+    &#125;
+
+    /**
+     * 死信队列A
+     *
+     * @return &#123;@link Queue &#125;
+     */
+    @Bean
+    public Queue dieQueueA() &#123;
+        return new Queue(RabbitMqConstant.DIE_QUEUE_A_NAME);
+    &#125;
+
+    /**
+     * 死信交换机
+     *
+     * @return &#123;@link TopicExchange &#125;
+     */
+    @Bean
+    public TopicExchange dieAbTopicExchange() &#123;
+        return new TopicExchange(RabbitMqConstant.DIE_AB_TOPIC_EXCHANGE_NAME);
+    &#125;
+
+    /**
+     * 死信队列A绑定死信交换机
+     *
+     * @return &#123;@link Binding &#125;
+     */
+    @Bean
+    public Binding bindDieTopicExchangeA() &#123;
+        return BindingBuilder
+                // 绑定队列
+                .bind(dieQueueA())
+                // 到交换机
+                .to(dieAbTopicExchange())
+                .with(RabbitRoutingKeyEnum.DIE_QUEUE_A_ROUTING_KEY.getValue());
+    &#125;
+&#125;
+</code></pre>
+<h3 id="2-2-消费方监听"><a href="#2-2-消费方监听" class="headerlink" title="2.2 消费方监听"></a>2.2 消费方监听</h3><pre><code class="java">/**
+ * 死信队列消息监听消费者
+ *
+ * @author liukai
+ * @since 2023/4/19 17:11
+ */
+@Component
+public class DieRabbitListener &#123;
+    @RabbitListener(queues = RabbitMqConstant.DIE_QUEUE_A_NAME)
+    public void dieA(Map&lt;String, Object&gt; map) &#123;
+        System.out.println(&quot;消费者接收到死信队列A中的消息:&quot; + map.toString());
+        // 根据 订单ID查询DB更新订单状态,设置订单过期.增加库存...
+        //coding... 这里后面单独列出一期订单秒杀业务博文再详细复述.
+    &#125;
+&#125;
+</code></pre>
+<h3 id="2-3-模拟生产方"><a href="#2-3-模拟生产方" class="headerlink" title="2.3 模拟生产方"></a>2.3 模拟生产方</h3><pre><code class="java">@RestController
+@RequiredArgsConstructor
+@RequestMapping(&quot;/rabbitmq/test&quot;)
+public class RabbitMqTestController &#123;
+    private final RabbitMqTestService rabbitMqTestService;
+    
+    @GetMapping(&quot;/send/message/topic/die/queue/a&quot;)
+    public Map&lt;String, Object&gt; sendMessageTopicDieQueueA(String message) &#123;
+        return rabbitMqTestService.sendMessageTopicDieQueueA(message);
+    &#125;
+&#125;
+</code></pre>
+<pre><code class="java">@Service
+@RequiredArgsConstructor
+public class RabbitMqTestServiceImpl implements RabbitMqTestService &#123;
+    private final RabbitTemplate rabbitTemplate;
+    
+    @Override
+    public Map&lt;String, Object&gt; sendMessageTopicDieQueueA(String message) &#123;
+        Map&lt;String, Object&gt; messageMap = getMessageMap(message);
+        rabbitTemplate.convertAndSend(RabbitMqConstant.BUS_AB_TOPIC_EXCHANGE_NAME, RabbitRoutingKeyEnum.BUS_QUEUE_A_ROUTING_KEY.getValue(), messageMap);
+        return messageMap;
+    &#125;
+&#125;
+</code></pre>
 <blockquote>
 <p>注意:</p>
 <p>注意这种方式是正常发送消息到业务队列,我们在上面已经配置了业务队列的ttl(args.put(“x-message-ttl”, 5000);)所以这里面的消息如果超过可这个时间没有被消费者消费就会进入死信队列,我们消费方就会监听到死信队列中的消息,</p>
 <p>此外我们还可以单独对消息设置ttl这样如果该消息的ttl如果比对列的小就会按照消息的ttl走</p>
 <p>对消息单独设置TTL的代码如下:</p>
 </blockquote>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title function_">sendMessageTopicDieQueueAttlmes</span><span class="params">(String message)</span> &#123;</span><br><span class="line">        Map&lt;String, Object&gt; messageMap = getMessageMap(message);</span><br><span class="line">        <span class="comment">//给消息设置过期时间</span></span><br><span class="line">        <span class="type">MessagePostProcessor</span> <span class="variable">messagePostProcessor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">MessagePostProcessor</span>() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> Message <span class="title function_">postProcessMessage</span><span class="params">(Message message)</span> <span class="keyword">throws</span> AmqpException &#123;</span><br><span class="line">                <span class="comment">// 这里单位也是毫秒，但这里是字符串的形式</span></span><br><span class="line">                message.getMessageProperties().setExpiration(<span class="string">&quot;3000&quot;</span>);</span><br><span class="line">                <span class="comment">//还可以为消息设置编码</span></span><br><span class="line">                message.getMessageProperties().setContentEncoding(<span class="string">&quot;UTF-8&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span> message;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">        rabbitTemplate.convertAndSend(RabbitMqConstant.BUS_AB_TOPIC_EXCHANGE_NAME, RabbitRoutingKeyEnum.BUS_QUEUE_A_ROUTING_KEY.getValue(), messageMap, messagePostProcessor);</span><br><span class="line">        <span class="keyword">return</span> messageMap;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
+<pre><code class="java">@Override
+    public Map&lt;String, Object&gt; sendMessageTopicDieQueueAttlmes(String message) &#123;
+        Map&lt;String, Object&gt; messageMap = getMessageMap(message);
+        //给消息设置过期时间
+        MessagePostProcessor messagePostProcessor = new MessagePostProcessor() &#123;
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException &#123;
+                // 这里单位也是毫秒，但这里是字符串的形式
+                message.getMessageProperties().setExpiration(&quot;3000&quot;);
+                //还可以为消息设置编码
+                message.getMessageProperties().setContentEncoding(&quot;UTF-8&quot;);
+                return message;
+            &#125;
+        &#125;;
+        rabbitTemplate.convertAndSend(RabbitMqConstant.BUS_AB_TOPIC_EXCHANGE_NAME, RabbitRoutingKeyEnum.BUS_QUEUE_A_ROUTING_KEY.getValue(), messageMap, messagePostProcessor);
+        return messageMap;
+    &#125;
+</code></pre>
 <h2 id="3-运行截图"><a href="#3-运行截图" class="headerlink" title="3 运行截图"></a>3 运行截图</h2><blockquote>
 <p>有消费者消费情况下 不会进入死信队列中</p>
 </blockquote>
@@ -332,7 +469,7 @@ document.addEventListener('pjax:error', (e) => {
   if (e.request.status === 404) {
     pjax.loadUrl('/404.html')
   }
-})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script>
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div>
         <style>
             [bg-lazy] {
                 background-image: none !important;
@@ -345,4 +482,4 @@ document.addEventListener('pjax:error', (e) => {
                 preloadRatio: 1,
                 processImages: null,
             };
-        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script></body></html>
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>

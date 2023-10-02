@@ -17,7 +17,7 @@
   localSearch: {"path":"/liukai/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
   translate: undefined,
   noticeOutdate: undefined,
-  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  highlight: undefined,
   copy: {
     success: '复制成功',
     error: '复制错误',
@@ -173,8 +173,34 @@
 <p>具体详细的信息我们其实可以参考其github地址:</p>
 <p><a target="_blank" rel="noopener" href="https://github.com/git-commit-id/git-commit-id-maven-plugin">https://github.com/git-commit-id/git-commit-id-maven-plugin</a></p>
 </blockquote>
-<h2 id="2-maven依赖"><a href="#2-maven依赖" class="headerlink" title="2 maven依赖"></a>2 maven依赖</h2><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!--打包jar 与git commit 关联插件--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>io.github.git-commit-id<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>git-commit-id-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;git.commit.plugin&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">id</span>&gt;</span>get-the-git-infos<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">goal</span>&gt;</span>revision<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">phase</span>&gt;</span>initialize<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">failOnNoGitDirectory</span>&gt;</span>false<span class="tag">&lt;/<span class="name">failOnNoGitDirectory</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">generateGitPropertiesFile</span>&gt;</span>true<span class="tag">&lt;/<span class="name">generateGitPropertiesFile</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--因为项目定制了jackson的日期时间序列化/反序列化格式，</span></span><br><span class="line"><span class="comment">				因此这里要进行配置,不然通过management.info.git.mode=full进行完整git信息监控时会存在问题</span></span><br><span class="line"><span class="comment">			 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dateFormat</span>&gt;</span>yyyy-MM-dd HH:mm:ss<span class="tag">&lt;/<span class="name">dateFormat</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">includeOnlyProperties</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">includeOnlyProperty</span>&gt;</span>^git.build.(time|version)$<span class="tag">&lt;/<span class="name">includeOnlyProperty</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">includeOnlyProperty</span>&gt;</span>^git.commit.(id|message|time).*$<span class="tag">&lt;/<span class="name">includeOnlyProperty</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">includeOnlyProperties</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
+<h2 id="2-maven依赖"><a href="#2-maven依赖" class="headerlink" title="2 maven依赖"></a>2 maven依赖</h2><pre><code class="xml">&lt;!--打包jar 与git commit 关联插件--&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;io.github.git-commit-id&lt;/groupId&gt;
+    &lt;artifactId&gt;git-commit-id-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;$&#123;git.commit.plugin&#125;&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;get-the-git-infos&lt;/id&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;revision&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;phase&gt;initialize&lt;/phase&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+    &lt;configuration&gt;
+        &lt;failOnNoGitDirectory&gt;false&lt;/failOnNoGitDirectory&gt;
+        &lt;generateGitPropertiesFile&gt;true&lt;/generateGitPropertiesFile&gt;
+        &lt;!--因为项目定制了jackson的日期时间序列化/反序列化格式，
+                因此这里要进行配置,不然通过management.info.git.mode=full进行完整git信息监控时会存在问题
+             --&gt;
+        &lt;dateFormat&gt;yyyy-MM-dd HH:mm:ss&lt;/dateFormat&gt;
+        &lt;includeOnlyProperties&gt;
+            &lt;includeOnlyProperty&gt;^git.build.(time|version)$&lt;/includeOnlyProperty&gt;
+            &lt;includeOnlyProperty&gt;^git.commit.(id|message|time).*$&lt;/includeOnlyProperty&gt;
+        &lt;/includeOnlyProperties&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+</code></pre>
 <h2 id="3-使用实例"><a href="#3-使用实例" class="headerlink" title="3 使用实例"></a>3 使用实例</h2><blockquote>
 <p>使用示例其实可以参考<a href="https://gitee.com/log4j/pig">Pig开源</a>项目的使用也可以百度搜索相关内容,或者到管网查看使用教程</p>
 <p>类似文章连接:</p>
@@ -275,7 +301,7 @@ document.addEventListener('pjax:error', (e) => {
   if (e.request.status === 404) {
     pjax.loadUrl('/404.html')
   }
-})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script>
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div>
         <style>
             [bg-lazy] {
                 background-image: none !important;
@@ -288,4 +314,4 @@ document.addEventListener('pjax:error', (e) => {
                 preloadRatio: 1,
                 processImages: null,
             };
-        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script></body></html>
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>

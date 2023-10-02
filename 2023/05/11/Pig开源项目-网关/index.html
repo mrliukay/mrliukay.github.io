@@ -17,7 +17,7 @@
   localSearch: {"path":"/liukai/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
   translate: undefined,
   noticeOutdate: undefined,
-  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  highlight: undefined,
   copy: {
     success: '复制成功',
     error: '复制错误',
@@ -213,19 +213,117 @@
 <blockquote>
 <p>GatewayFilter 在配置文件（例如 application.yml）中的写法与 Predicate 类似，格式如下:</p>
 </blockquote>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span> </span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">xxxx</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">xxxx</span></span><br><span class="line">          <span class="attr">predicates:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=xxxx</span></span><br><span class="line">          <span class="attr">filters:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">AddRequestParameter=X-Request-Id,1024</span> <span class="comment">#过滤器工厂会在匹配的请求头加上一对请求头，名称为 X-Request-Id 值为 1024</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">PrefixPath=/dept</span> <span class="comment">#在请求路径前面加上 /dept</span></span><br><span class="line">            <span class="string">……</span></span><br></pre></td></tr></table></figure>
-
+<pre><code class="yaml">spring:
+  cloud:
+    gateway: 
+      routes:
+        - id: xxxx
+          uri: xxxx
+          predicates:
+            - Path=xxxx
+          filters:
+            - AddRequestParameter=X-Request-Id,1024 #过滤器工厂会在匹配的请求头加上一对请求头，名称为 X-Request-Id 值为 1024
+            - PrefixPath=/dept #在请求路径前面加上 /dept
+            ……
+</code></pre>
 <h4 id="5-3-4-全局过滤器-GlobalFilter"><a href="#5-3-4-全局过滤器-GlobalFilter" class="headerlink" title="5.3.4 全局过滤器(GlobalFilter)"></a>5.3.4 全局过滤器(GlobalFilter)</h4><blockquote>
 <p>GlobalFilter 是一种作用于所有的路由上的全局过滤器，通过它，我们可以实现一些统一化的业务功能，例如权限认证、IP 访问限制等。当某个请求被路由匹配时，那么所有的 GlobalFilter 会和该路由自身配置的 GatewayFilter 组合成一个过滤器链。</p>
 <p>Spring Cloud Gateway 为我们提供了多种默认的 GlobalFilter，例如与转发、路由、负载均衡等相关的全局过滤器。但在实际的项目开发中，通常我们都会自定义一些自己的 GlobalFilter 全局过滤器以满足我们自身的业务需求，而很少直接使用 Spring Cloud Config 提供这些默认的 GlobalFilter。</p>
 </blockquote>
-<h2 id="6-Gateway路由断言过滤器配置示例"><a href="#6-Gateway路由断言过滤器配置示例" class="headerlink" title="6 Gateway路由断言过滤器配置示例"></a>6 Gateway路由断言过滤器配置示例</h2><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">7000</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">@artifactId@</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">nacos:</span></span><br><span class="line">      <span class="attr">discovery:</span></span><br><span class="line">        <span class="attr">server-addr:</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:8848</span></span><br><span class="line">        <span class="attr">service:</span> <span class="string">$&#123;spring.application.name&#125;</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">discovery:</span></span><br><span class="line">        <span class="attr">locator:</span></span><br><span class="line">          <span class="attr">enabled:</span> <span class="literal">true</span> <span class="comment"># 让gateway可以发现nacos中的微服务</span></span><br><span class="line"></span><br><span class="line">      <span class="comment"># gateway 使用简略配置可以直接注释掉下面配置即可(这里先不使用)</span></span><br><span class="line">      <span class="attr">routes:</span> <span class="comment"># 路由数组[路由 就是指定当请求满足什么条件的时候转到哪个微服务]</span></span><br><span class="line">        <span class="comment"># 转发到商品微服务</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">p_route</span> <span class="comment"># 当前路由的标识, 要求唯一</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">lb://cloud-alibaba-product</span> <span class="comment"># 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略</span></span><br><span class="line"><span class="comment">#          uri: http://127.0.0.1:8081 # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略</span></span><br><span class="line">          <span class="attr">order:</span> <span class="number">1</span> <span class="comment"># 路由的优先级,数字越小级别越高</span></span><br><span class="line">          <span class="attr">predicates:</span> <span class="comment"># 断言(就是路由转发要满足的条件)</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=/product-server/**</span> <span class="comment"># 当请求路径满足Path指定的规则时,才进行路由转发</span></span><br><span class="line">            <span class="comment"># 自定义断言限制年龄只有在18到35岁之间的人能访问 http://127.0.0.1:7000/product-server/product/1?age=25&amp;log=true</span></span><br><span class="line"><span class="comment">#            - Age=18,35</span></span><br><span class="line">          <span class="attr">filters:</span> <span class="comment"># 过滤器,请求在传递过程中可以通过过滤器对其进行一定的修改</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">StripPrefix=1</span> <span class="comment"># 转发之前去掉1层路径</span></span><br><span class="line">            <span class="comment"># 测试自定义局部过滤器(这里可以看到是consoleLog开启 http://127.0.0.1:7000/product-server/product/1?age=25&amp;log=true)</span></span><br><span class="line"><span class="comment">#            - Log=true,false</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 转发到订单微服务</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">o_route</span> <span class="comment"># 当前路由的标识, 要求唯一</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">lb://cloud-alibaba-order</span> <span class="comment"># 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略</span></span><br><span class="line"><span class="comment">#          uri: http://127.0.0.1:8082 # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略</span></span><br><span class="line">          <span class="attr">order:</span> <span class="number">1</span> <span class="comment"># 路由的优先级,数字越小级别越高</span></span><br><span class="line">          <span class="attr">predicates:</span> <span class="comment"># 断言(就是路由转发要满足的条件)</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=/order-server/**</span> <span class="comment"># 当请求路径满足Path指定的规则时,才进行路由转发</span></span><br><span class="line">            <span class="comment"># 自定义断言限制年龄只有在18到35岁之间的人能访问</span></span><br><span class="line"><span class="comment">#            - Age=18,35</span></span><br><span class="line">          <span class="attr">filters:</span> <span class="comment"># 过滤器,请求在传递过程中可以通过过滤器对其进行一定的修改</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">StripPrefix=1</span> <span class="comment"># 转发之前去掉1层路径</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 转发到用户微服务</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">u_route</span> <span class="comment"># 当前路由的标识, 要求唯一</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">lb://cloud-alibaba-user</span> <span class="comment"># 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略</span></span><br><span class="line"><span class="comment">#          uri: http://127.0.0.1:8071 # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略</span></span><br><span class="line">          <span class="attr">order:</span> <span class="number">1</span> <span class="comment"># 路由的优先级,数字越小级别越高</span></span><br><span class="line">          <span class="attr">predicates:</span> <span class="comment"># 断言(就是路由转发要满足的条件)</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=/user-server/**</span> <span class="comment"># 当请求路径满足Path指定的规则时,才进行路由转发</span></span><br><span class="line">            <span class="comment"># 自定义断言限制年龄只有在18到35岁之间的人能访问</span></span><br><span class="line"><span class="comment">#            - Age=18,35</span></span><br><span class="line">          <span class="attr">filters:</span> <span class="comment"># 过滤器,请求在传递过程中可以通过过滤器对其进行一定的修改</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">StripPrefix=1</span> <span class="comment"># 转发之前去掉1层路径(用于拦截原始请求的路径使用数字表示要截断的路径的数量)</span></span><br></pre></td></tr></table></figure>
+<h2 id="6-Gateway路由断言过滤器配置示例"><a href="#6-Gateway路由断言过滤器配置示例" class="headerlink" title="6 Gateway路由断言过滤器配置示例"></a>6 Gateway路由断言过滤器配置示例</h2><pre><code class="yaml">server:
+  port: 7000
+spring:
+  application:
+    name: @artifactId@
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        service: $&#123;spring.application.name&#125;
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 让gateway可以发现nacos中的微服务
 
+      # gateway 使用简略配置可以直接注释掉下面配置即可(这里先不使用)
+      routes: # 路由数组[路由 就是指定当请求满足什么条件的时候转到哪个微服务]
+        # 转发到商品微服务
+        - id: p_route # 当前路由的标识, 要求唯一
+          uri: lb://cloud-alibaba-product # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略
+#          uri: http://127.0.0.1:8081 # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略
+          order: 1 # 路由的优先级,数字越小级别越高
+          predicates: # 断言(就是路由转发要满足的条件)
+            - Path=/product-server/** # 当请求路径满足Path指定的规则时,才进行路由转发
+            # 自定义断言限制年龄只有在18到35岁之间的人能访问 http://127.0.0.1:7000/product-server/product/1?age=25&amp;log=true
+#            - Age=18,35
+          filters: # 过滤器,请求在传递过程中可以通过过滤器对其进行一定的修改
+            - StripPrefix=1 # 转发之前去掉1层路径
+            # 测试自定义局部过滤器(这里可以看到是consoleLog开启 http://127.0.0.1:7000/product-server/product/1?age=25&amp;log=true)
+#            - Log=true,false
+
+        # 转发到订单微服务
+        - id: o_route # 当前路由的标识, 要求唯一
+          uri: lb://cloud-alibaba-order # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略
+#          uri: http://127.0.0.1:8082 # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略
+          order: 1 # 路由的优先级,数字越小级别越高
+          predicates: # 断言(就是路由转发要满足的条件)
+            - Path=/order-server/** # 当请求路径满足Path指定的规则时,才进行路由转发
+            # 自定义断言限制年龄只有在18到35岁之间的人能访问
+#            - Age=18,35
+          filters: # 过滤器,请求在传递过程中可以通过过滤器对其进行一定的修改
+            - StripPrefix=1 # 转发之前去掉1层路径
+
+        # 转发到用户微服务
+        - id: u_route # 当前路由的标识, 要求唯一
+          uri: lb://cloud-alibaba-user # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略
+#          uri: http://127.0.0.1:8071 # 请求要转发到的地址 # lb指的是从nacos中按照名称获取微服务,并遵循负载均衡策略
+          order: 1 # 路由的优先级,数字越小级别越高
+          predicates: # 断言(就是路由转发要满足的条件)
+            - Path=/user-server/** # 当请求路径满足Path指定的规则时,才进行路由转发
+            # 自定义断言限制年龄只有在18到35岁之间的人能访问
+#            - Age=18,35
+          filters: # 过滤器,请求在传递过程中可以通过过滤器对其进行一定的修改
+            - StripPrefix=1 # 转发之前去掉1层路径(用于拦截原始请求的路径使用数字表示要截断的路径的数量)
+</code></pre>
 <h2 id="7-Gateway全局异常处理"><a href="#7-Gateway全局异常处理" class="headerlink" title="7 Gateway全局异常处理"></a>7 Gateway全局异常处理</h2><blockquote>
 <p>在之前的Springboot项目中我们都是使用@ControllerAdvide注解来实现全局异常捕获的，但是在网关中出现异常一般都是请求没有到达导致的异常，所以我们需要在网关也要定制一层全局异常捕获，我们可以实现<strong>ErrorWebExceptionHandler</strong>接口，并覆盖handle方法实现：</p>
 </blockquote>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Order(-1)</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">GlobalExceptionHandler</span> <span class="keyword">implements</span> <span class="title class_">ErrorWebExceptionHandler</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">final</span> ObjectMapper objectMapper;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="keyword">public</span> Mono&lt;Void&gt; <span class="title function_">handle</span><span class="params">(ServerWebExchange exchange, Throwable ex)</span> &#123;</span><br><span class="line">		<span class="type">ServerHttpResponse</span> <span class="variable">response</span> <span class="operator">=</span> exchange.getResponse();</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (response.isCommitted()) &#123;</span><br><span class="line">			<span class="keyword">return</span> Mono.error(ex);</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="comment">// header set</span></span><br><span class="line">		response.getHeaders().setContentType(MediaType.APPLICATION_JSON);</span><br><span class="line">		<span class="keyword">if</span> (ex <span class="keyword">instanceof</span> ResponseStatusException) &#123;</span><br><span class="line">			response.setStatusCode(((ResponseStatusException) ex).getStatus());</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> response.writeWith(Mono.fromSupplier(() -&gt; &#123;</span><br><span class="line">			<span class="type">DataBufferFactory</span> <span class="variable">bufferFactory</span> <span class="operator">=</span> response.bufferFactory();</span><br><span class="line">			<span class="keyword">try</span> &#123;</span><br><span class="line">				log.warn(<span class="string">&quot;Error Spring Cloud Gateway : &#123;&#125; &#123;&#125;&quot;</span>, exchange.getRequest().getPath(), ex.getMessage());</span><br><span class="line">				<span class="keyword">return</span> bufferFactory.wrap(objectMapper.writeValueAsBytes(R.failed(ex.getMessage())));</span><br><span class="line">			&#125;</span><br><span class="line">			<span class="keyword">catch</span> (JsonProcessingException e) &#123;</span><br><span class="line">				log.error(<span class="string">&quot;Error writing response&quot;</span>, ex);</span><br><span class="line">				<span class="keyword">return</span> bufferFactory.wrap(<span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">0</span>]);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;));</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="java">@Slf4j
+@Order(-1)
+@RequiredArgsConstructor
+public class GlobalExceptionHandler implements ErrorWebExceptionHandler &#123;
 
+    private final ObjectMapper objectMapper;
+
+    @Override
+    public Mono&lt;Void&gt; handle(ServerWebExchange exchange, Throwable ex) &#123;
+        ServerHttpResponse response = exchange.getResponse();
+
+        if (response.isCommitted()) &#123;
+            return Mono.error(ex);
+        &#125;
+
+        // header set
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        if (ex instanceof ResponseStatusException) &#123;
+            response.setStatusCode(((ResponseStatusException) ex).getStatus());
+        &#125;
+
+        return response.writeWith(Mono.fromSupplier(() -&gt; &#123;
+            DataBufferFactory bufferFactory = response.bufferFactory();
+            try &#123;
+                log.warn(&quot;Error Spring Cloud Gateway : &#123;&#125; &#123;&#125;&quot;, exchange.getRequest().getPath(), ex.getMessage());
+                return bufferFactory.wrap(objectMapper.writeValueAsBytes(R.failed(ex.getMessage())));
+            &#125;
+            catch (JsonProcessingException e) &#123;
+                log.error(&quot;Error writing response&quot;, ex);
+                return bufferFactory.wrap(new byte[0]);
+            &#125;
+        &#125;));
+    &#125;
+
+&#125;
+</code></pre>
 <h2 id="8-友链"><a href="#8-友链" class="headerlink" title="8 友链"></a>8 友链</h2><blockquote>
 <p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/y-QNbHy_MPcRT0uPy-uCTA">Spring Cloud Gateway夺命10连问</a></p>
 <p><a target="_blank" rel="noopener" href="http://c.biancheng.net/springcloud/gateway.html">Gateway：Spring Cloud API网关组件</a></p>
@@ -326,7 +424,7 @@ document.addEventListener('pjax:error', (e) => {
   if (e.request.status === 404) {
     pjax.loadUrl('/404.html')
   }
-})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script>
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div>
         <style>
             [bg-lazy] {
                 background-image: none !important;
@@ -339,4 +437,4 @@ document.addEventListener('pjax:error', (e) => {
                 preloadRatio: 1,
                 processImages: null,
             };
-        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script></body></html>
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>

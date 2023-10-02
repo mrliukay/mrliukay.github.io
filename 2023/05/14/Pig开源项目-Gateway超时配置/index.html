@@ -1,9 +1,9 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Pig开源项目-Gateway超时配置 | LiuKai</title><meta name="author" content="liukai"><meta name="copyright" content="liukai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="网关超时配置 摘要: 本篇文章主要介绍Gateway网关超时配置  1 超时配置概念 路由超时配置可以为所有路由配置Http超时（响应和连接），并为每个特定路由覆盖Http超时。 简单来说就是 我们可以给网关配置全局超时 和 特定路由超时 并且如果前者配置了后者也配置,那么后者会覆盖前者的超时配置;  2 具体配置 下面是代码实现超时配置的方案  2.1 全局超时配置spring:  cloud:">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Pig开源项目-Gateway超时配置 | LiuKai</title><meta name="author" content="liukai"><meta name="copyright" content="liukai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="网关超时配置 摘要: 本篇文章主要介绍Gateway网关超时配置  1 超时配置概念 路由超时配置可以为所有路由配置Http超时（响应和连接），并为每个特定路由覆盖Http超时。 简单来说就是 我们可以给网关配置全局超时 和 特定路由超时 并且如果前者配置了后者也配置,那么后者会覆盖前者的超时配置;  2 具体配置 下面是代码实现超时配置的方案  2.1 全局超时配置spring:   cloud">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Pig开源项目-Gateway超时配置">
 <meta property="og:url" content="https://gitee.com/mrkay0313/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-Gateway%E8%B6%85%E6%97%B6%E9%85%8D%E7%BD%AE/index.html">
 <meta property="og:site_name" content="LiuKai">
-<meta property="og:description" content="网关超时配置 摘要: 本篇文章主要介绍Gateway网关超时配置  1 超时配置概念 路由超时配置可以为所有路由配置Http超时（响应和连接），并为每个特定路由覆盖Http超时。 简单来说就是 我们可以给网关配置全局超时 和 特定路由超时 并且如果前者配置了后者也配置,那么后者会覆盖前者的超时配置;  2 具体配置 下面是代码实现超时配置的方案  2.1 全局超时配置spring:  cloud:">
+<meta property="og:description" content="网关超时配置 摘要: 本篇文章主要介绍Gateway网关超时配置  1 超时配置概念 路由超时配置可以为所有路由配置Http超时（响应和连接），并为每个特定路由覆盖Http超时。 简单来说就是 我们可以给网关配置全局超时 和 特定路由超时 并且如果前者配置了后者也配置,那么后者会覆盖前者的超时配置;  2 具体配置 下面是代码实现超时配置的方案  2.1 全局超时配置spring:   cloud">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gitee.com/mrkay0313/img/avatar.png">
 <meta property="article:published_time" content="2023-05-14T15:47:32.000Z">
@@ -17,7 +17,7 @@
   localSearch: {"path":"/liukai/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
   translate: undefined,
   noticeOutdate: undefined,
-  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  highlight: undefined,
   copy: {
     success: '复制成功',
     error: '复制错误',
@@ -175,16 +175,28 @@
 <h2 id="2-具体配置"><a href="#2-具体配置" class="headerlink" title="2 具体配置"></a>2 具体配置</h2><blockquote>
 <p>下面是代码实现超时配置的方案</p>
 </blockquote>
-<h3 id="2-1-全局超时配置"><a href="#2-1-全局超时配置" class="headerlink" title="2.1 全局超时配置"></a>2.1 全局超时配置</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">httpclient:</span></span><br><span class="line">        <span class="attr">connect-timeout:</span> <span class="number">1000</span></span><br><span class="line">        <span class="attr">response-timeout:</span> <span class="string">10s</span></span><br></pre></td></tr></table></figure>
-
+<h3 id="2-1-全局超时配置"><a href="#2-1-全局超时配置" class="headerlink" title="2.1 全局超时配置"></a>2.1 全局超时配置</h3><pre><code class="yaml">spring:
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 10s
+</code></pre>
 <blockquote>
 <ul>
 <li><strong>connect-timeout 必须以毫秒为单位指定连接超时时间.</strong></li>
 <li><strong>response-timeout 必须指定为java.time.Duration</strong></li>
 </ul>
 </blockquote>
-<h3 id="2-2-特定路由超时配置"><a href="#2-2-特定路由超时配置" class="headerlink" title="2.2 特定路由超时配置"></a>2.2 特定路由超时配置</h3><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">id:</span> <span class="string">pig-upms</span>      <span class="comment"># 唯一的服务ID</span></span><br><span class="line">  <span class="attr">uri:</span> <span class="string">lb://pig-upms</span> <span class="comment"># 注册中心的服务名称，实现负载均衡</span></span><br><span class="line">  <span class="attr">predicates:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">Path=/admin/demo</span>  <span class="comment">#所有业务的请求前缀</span></span><br><span class="line">  <span class="attr">metadata:</span></span><br><span class="line">    <span class="attr">response-timeout:</span> <span class="number">200</span></span><br><span class="line">    <span class="attr">connect-timeout:</span> <span class="number">200</span></span><br></pre></td></tr></table></figure>
-
+<h3 id="2-2-特定路由超时配置"><a href="#2-2-特定路由超时配置" class="headerlink" title="2.2 特定路由超时配置"></a>2.2 特定路由超时配置</h3><pre><code class="yaml">
+- id: pig-upms      # 唯一的服务ID
+  uri: lb://pig-upms # 注册中心的服务名称，实现负载均衡
+  predicates:
+  - Path=/admin/demo  #所有业务的请求前缀
+  metadata:
+    response-timeout: 200
+    connect-timeout: 200
+</code></pre>
 <blockquote>
 <p>可以通过路由的metadata以下两个参数配置每个路由超时：</p>
 <ul>
@@ -291,7 +303,7 @@ document.addEventListener('pjax:error', (e) => {
   if (e.request.status === 404) {
     pjax.loadUrl('/404.html')
   }
-})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script>
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div>
         <style>
             [bg-lazy] {
                 background-image: none !important;
@@ -304,4 +316,4 @@ document.addEventListener('pjax:error', (e) => {
                 preloadRatio: 1,
                 processImages: null,
             };
-        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script></body></html>
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>

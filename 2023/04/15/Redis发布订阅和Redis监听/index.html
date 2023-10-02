@@ -1,9 +1,9 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Redis发布订阅和Redis监听 | LiuKai</title><meta name="author" content="liukai"><meta name="copyright" content="liukai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Redis发布订阅和监听 摘要” 本篇博客主要介绍以下内容:  Redis发布订阅; Redis监听过期   1 Redis发布订阅 注意: Redis版本大于等2.0  1.1 Redis发布订阅代码&#x2F;** * Redis配置 * * @author liukai * @since 2023&#x2F;3&#x2F;22 15:30 *&#x2F;@Configurationpublic class RedisConfig">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Redis发布订阅和Redis监听 | LiuKai</title><meta name="author" content="liukai"><meta name="copyright" content="liukai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Redis发布订阅和监听 摘要” 本篇博客主要介绍以下内容:  Redis发布订阅; Redis监听过期   1 Redis发布订阅 注意: Redis版本大于等2.0  1.1 Redis发布订阅代码&#x2F;**  * Redis配置  *  * @author liukai  * @since 2023&#x2F;3&#x2F;22 15:30  *&#x2F; @Configuration public class Redis">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Redis发布订阅和Redis监听">
 <meta property="og:url" content="https://gitee.com/mrkay0313/2023/04/15/Redis%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85%E5%92%8CRedis%E7%9B%91%E5%90%AC/index.html">
 <meta property="og:site_name" content="LiuKai">
-<meta property="og:description" content="Redis发布订阅和监听 摘要” 本篇博客主要介绍以下内容:  Redis发布订阅; Redis监听过期   1 Redis发布订阅 注意: Redis版本大于等2.0  1.1 Redis发布订阅代码&#x2F;** * Redis配置 * * @author liukai * @since 2023&#x2F;3&#x2F;22 15:30 *&#x2F;@Configurationpublic class RedisConfig">
+<meta property="og:description" content="Redis发布订阅和监听 摘要” 本篇博客主要介绍以下内容:  Redis发布订阅; Redis监听过期   1 Redis发布订阅 注意: Redis版本大于等2.0  1.1 Redis发布订阅代码&#x2F;**  * Redis配置  *  * @author liukai  * @since 2023&#x2F;3&#x2F;22 15:30  *&#x2F; @Configuration public class Redis">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gitee.com/mrkay0313/img/avatar.png">
 <meta property="article:published_time" content="2023-04-15T15:11:19.000Z">
@@ -17,7 +17,7 @@
   localSearch: {"path":"/liukai/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
   translate: undefined,
   noticeOutdate: undefined,
-  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  highlight: undefined,
   copy: {
     success: '复制成功',
     error: '复制错误',
@@ -162,7 +162,7 @@
       }
     }
     detectApple()
-    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/liukai/img/loading.gif" data-original="/liukai/img/avatar.png" onerror="onerror=null;src='/liukai/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/liukai/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/liukai/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/liukai/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/liukai/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/archives/"><i class="fa-fw fas fa-archive"></i><span> 博文</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/liukai/img/default_top_img.jpg')"><nav id="nav"><span id="blog-info"><a href="/liukai/" title="LiuKai"><span class="site-name">LiuKai</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/liukai/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/archives/"><i class="fa-fw fas fa-archive"></i><span> 博文</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Redis发布订阅和Redis监听</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-04-15T15:11:19.000Z" title="发表于 2023-04-15 23:11:19">2023-04-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-04-15T16:08:07.141Z" title="更新于 2023-04-16 00:08:07">2023-04-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/liukai/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">711</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Redis发布订阅和Redis监听"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Redis发布订阅和监听"><a href="#Redis发布订阅和监听" class="headerlink" title="Redis发布订阅和监听"></a>Redis发布订阅和监听</h1><blockquote>
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/liukai/img/loading.gif" data-original="/liukai/img/avatar.png" onerror="onerror=null;src='/liukai/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/liukai/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/liukai/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/liukai/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/liukai/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/archives/"><i class="fa-fw fas fa-archive"></i><span> 博文</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/liukai/img/default_top_img.jpg')"><nav id="nav"><span id="blog-info"><a href="/liukai/" title="LiuKai"><span class="site-name">LiuKai</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/liukai/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/archives/"><i class="fa-fw fas fa-archive"></i><span> 博文</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Redis发布订阅和Redis监听</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-04-15T15:11:19.000Z" title="发表于 2023-04-15 23:11:19">2023-04-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-04-15T16:08:07.141Z" title="更新于 2023-04-16 00:08:07">2023-04-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/liukai/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">716</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Redis发布订阅和Redis监听"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="Redis发布订阅和监听"><a href="#Redis发布订阅和监听" class="headerlink" title="Redis发布订阅和监听"></a>Redis发布订阅和监听</h1><blockquote>
 <p>摘要”</p>
 <p>本篇博客主要介绍以下内容:</p>
 <ul>
@@ -174,15 +174,82 @@
 <p>注意:</p>
 <p>Redis版本大于等2.0</p>
 </blockquote>
-<h3 id="1-1-Redis发布订阅代码"><a href="#1-1-Redis发布订阅代码" class="headerlink" title="1.1 Redis发布订阅代码"></a>1.1 Redis发布订阅代码</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Redis配置</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/3/22 15:30</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RedisConfig</span> &#123;</span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;redis.topic&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String redisTopic;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RedisMessageListenerContainer <span class="title function_">listenerContainer</span><span class="params">(RedisConnectionFactory factory, MessageListenerAdapter messageListenerAdapter)</span> &#123;</span><br><span class="line">        <span class="type">RedisMessageListenerContainer</span> <span class="variable">container</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RedisMessageListenerContainer</span>();</span><br><span class="line">        container.setConnectionFactory(factory);</span><br><span class="line">        List&lt;Topic&gt; topicList = Arrays.asList(<span class="keyword">new</span> <span class="title class_">PatternTopic</span>(redisTopic));</span><br><span class="line">        container.addMessageListener(messageListenerAdapter, topicList);</span><br><span class="line">        <span class="keyword">return</span> container;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> MessageListenerAdapter <span class="title function_">messageListenerAdapter</span><span class="params">(RedisReceiver redisReceiver)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MessageListenerAdapter</span>(redisReceiver, <span class="string">&quot;onMessage&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="1-1-Redis发布订阅代码"><a href="#1-1-Redis发布订阅代码" class="headerlink" title="1.1 Redis发布订阅代码"></a>1.1 Redis发布订阅代码</h3><pre><code class="java">/**
+ * Redis配置
+ *
+ * @author liukai
+ * @since 2023/3/22 15:30
+ */
+@Configuration
+public class RedisConfig &#123;
+    @Value(&quot;$&#123;redis.topic&#125;&quot;)
+    private String redisTopic;
 
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * redis 消息监听回调</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/3/22 15:42</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RedisReceiver</span> <span class="keyword">implements</span> <span class="title class_">MessageListener</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * description</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> message 信息</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> bytes   字节数组</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onMessage</span><span class="params">(<span class="meta">@Nullable</span> Message message, <span class="meta">@Nullable</span> <span class="type">byte</span>[] bytes)</span> &#123;</span><br><span class="line">        log.info(<span class="string">&quot;进来了回调方法！&quot;</span>);</span><br><span class="line">        log.info(<span class="string">&quot;回调的信息 message=&#123;&#125;&quot;</span>, message);</span><br><span class="line">        log.info(<span class="string">&quot;回调的信息 bytes=&#123;&#125;&quot;</span>, StrUtil.str(bytes, CharsetUtil.UTF_8));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    @Bean
+    public RedisMessageListenerContainer listenerContainer(RedisConnectionFactory factory, MessageListenerAdapter messageListenerAdapter) &#123;
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(factory);
+        List&lt;Topic&gt; topicList = Arrays.asList(new PatternTopic(redisTopic));
+        container.addMessageListener(messageListenerAdapter, topicList);
+        return container;
+    &#125;
 
+    @Bean
+    public MessageListenerAdapter messageListenerAdapter(RedisReceiver redisReceiver) &#123;
+        return new MessageListenerAdapter(redisReceiver, &quot;onMessage&quot;);
+    &#125;
+&#125;
+</code></pre>
+<pre><code class="java">/**
+ * redis 消息监听回调
+ *
+ * @author liukai
+ * @since 2023/3/22 15:42
+ */
+@Component
+@Slf4j
+public class RedisReceiver implements MessageListener &#123;
+    /**
+     * description
+     *
+     * @param message 信息
+     * @param bytes   字节数组
+     */
+    @Override
+    public void onMessage(@Nullable Message message, @Nullable byte[] bytes) &#123;
+        log.info(&quot;进来了回调方法！&quot;);
+        log.info(&quot;回调的信息 message=&#123;&#125;&quot;, message);
+        log.info(&quot;回调的信息 bytes=&#123;&#125;&quot;, StrUtil.str(bytes, CharsetUtil.UTF_8));
+    &#125;
+&#125;
+</code></pre>
 <h3 id="1-2-Redis发布订阅结果演示"><a href="#1-2-Redis发布订阅结果演示" class="headerlink" title="1.2 Redis发布订阅结果演示"></a>1.2 Redis发布订阅结果演示</h3><blockquote>
 <p>首先创建一个controller来完成模拟发布方</p>
 </blockquote>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 测试控制层</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/3/22 0:05</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@Api(tags = &quot;测试接口层&quot;)</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/test/apis&quot;)</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TestController</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ISysUserService iSysUserService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> IStWyzService iStWyzService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> StringRedisTemplate stringRedisTemplate;</span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;redis.topic&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String redisTopic;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/redis/message/push&quot;)</span></span><br><span class="line">    <span class="meta">@Operation(summary = &quot;Redis发布消息&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">wyzList</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">SysUser</span> <span class="variable">user</span> <span class="operator">=</span> iSysUserService.getUser(<span class="string">&quot;zs&quot;</span>);</span><br><span class="line">        stringRedisTemplate.convertAndSend(redisTopic, JSONUtil.toJsonStr(user));</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="java">/**
+ * 测试控制层
+ *
+ * @author liukai
+ * @since 2023/3/22 0:05
+ */
+@RestController
+@Api(tags = &quot;测试接口层&quot;)
+@RequestMapping(&quot;/test/apis&quot;)
+@RequiredArgsConstructor
+public class TestController &#123;
+    private final ISysUserService iSysUserService;
+    private final IStWyzService iStWyzService;
+    private final StringRedisTemplate stringRedisTemplate;
+    @Value(&quot;$&#123;redis.topic&#125;&quot;)
+    private String redisTopic;
 
+    @GetMapping(&quot;/redis/message/push&quot;)
+    @Operation(summary = &quot;Redis发布消息&quot;)
+    public void wyzList() &#123;
+        SysUser user = iSysUserService.getUser(&quot;zs&quot;);
+        stringRedisTemplate.convertAndSend(redisTopic, JSONUtil.toJsonStr(user));
+    &#125;
+</code></pre>
 <blockquote>
 <p>发送后控制台打印结果截图如下</p>
 </blockquote>
@@ -201,13 +268,67 @@
 <h3 id="2-2-代码中增加过期监听topic"><a href="#2-2-代码中增加过期监听topic" class="headerlink" title="2.2 代码中增加过期监听topic"></a>2.2 代码中增加过期监听topic</h3><blockquote>
 <p>增加代码如下</p>
 </blockquote>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Redis配置</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/3/22 15:30</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RedisConfig</span> &#123;</span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;redis.topic&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String redisTopic;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RedisMessageListenerContainer <span class="title function_">listenerContainer</span><span class="params">(RedisConnectionFactory factory, MessageListenerAdapter messageListenerAdapter)</span> &#123;</span><br><span class="line">        <span class="type">RedisMessageListenerContainer</span> <span class="variable">container</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RedisMessageListenerContainer</span>();</span><br><span class="line">        container.setConnectionFactory(factory);</span><br><span class="line">        List&lt;Topic&gt; topicList = Arrays.asList(<span class="keyword">new</span> <span class="title class_">PatternTopic</span>(<span class="string">&quot;__keyevent@0__:expired&quot;</span>), <span class="keyword">new</span> <span class="title class_">PatternTopic</span>(redisTopic));</span><br><span class="line">        container.addMessageListener(messageListenerAdapter, topicList);</span><br><span class="line">        <span class="keyword">return</span> container;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> MessageListenerAdapter <span class="title function_">messageListenerAdapter</span><span class="params">(RedisReceiver redisReceiver)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">MessageListenerAdapter</span>(redisReceiver, <span class="string">&quot;onMessage&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="java">/**
+ * Redis配置
+ *
+ * @author liukai
+ * @since 2023/3/22 15:30
+ */
+@Configuration
+public class RedisConfig &#123;
+    @Value(&quot;$&#123;redis.topic&#125;&quot;)
+    private String redisTopic;
 
+    @Bean
+    public RedisMessageListenerContainer listenerContainer(RedisConnectionFactory factory, MessageListenerAdapter messageListenerAdapter) &#123;
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(factory);
+        List&lt;Topic&gt; topicList = Arrays.asList(new PatternTopic(&quot;__keyevent@0__:expired&quot;), new PatternTopic(redisTopic));
+        container.addMessageListener(messageListenerAdapter, topicList);
+        return container;
+    &#125;
+
+    @Bean
+    public MessageListenerAdapter messageListenerAdapter(RedisReceiver redisReceiver) &#123;
+        return new MessageListenerAdapter(redisReceiver, &quot;onMessage&quot;);
+    &#125;
+&#125;
+</code></pre>
 <h3 id="2-3-Redis监听过期Key结果演示"><a href="#2-3-Redis监听过期Key结果演示" class="headerlink" title="2.3 Redis监听过期Key结果演示"></a>2.3 Redis监听过期Key结果演示</h3><blockquote>
 <p>controller增加一个接口</p>
 </blockquote>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 测试控制层</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> liukai</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@since</span> 2023/3/22 0:05</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@Api(tags = &quot;测试接口层&quot;)</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/test/apis&quot;)</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TestController</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ISysUserService iSysUserService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> IStWyzService iStWyzService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> StringRedisTemplate stringRedisTemplate;</span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;redis.topic&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String redisTopic;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/redis/message/push&quot;)</span></span><br><span class="line">    <span class="meta">@Operation(summary = &quot;Redis发布消息&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">wyzList</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">SysUser</span> <span class="variable">user</span> <span class="operator">=</span> iSysUserService.getUser(<span class="string">&quot;zs&quot;</span>);</span><br><span class="line">        stringRedisTemplate.convertAndSend(redisTopic, JSONUtil.toJsonStr(user));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@GetMapping(&quot;/redis/message/listener/exp&quot;)</span></span><br><span class="line">    <span class="meta">@Operation(summary = &quot;redis监听过期key&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">redisMessageListenerExp</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">SysUser</span> <span class="variable">user</span> <span class="operator">=</span> iSysUserService.getUser(<span class="string">&quot;zs&quot;</span>);</span><br><span class="line">        <span class="comment">//60秒过期</span></span><br><span class="line">        stringRedisTemplate.opsForValue().set(<span class="string">&quot;exp_key_&quot;</span> + RandomUtil.randomNumbers(<span class="number">5</span>), user.getUserName(), <span class="number">60</span>, TimeUnit.SECONDS);</span><br><span class="line">    &#125;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<pre><code class="java">/**
+ * 测试控制层
+ *
+ * @author liukai
+ * @since 2023/3/22 0:05
+ */
+@RestController
+@Api(tags = &quot;测试接口层&quot;)
+@RequestMapping(&quot;/test/apis&quot;)
+@RequiredArgsConstructor
+public class TestController &#123;
+    private final ISysUserService iSysUserService;
+    private final IStWyzService iStWyzService;
+    private final StringRedisTemplate stringRedisTemplate;
+    @Value(&quot;$&#123;redis.topic&#125;&quot;)
+    private String redisTopic;
 
+    @GetMapping(&quot;/redis/message/push&quot;)
+    @Operation(summary = &quot;Redis发布消息&quot;)
+    public void wyzList() &#123;
+        SysUser user = iSysUserService.getUser(&quot;zs&quot;);
+        stringRedisTemplate.convertAndSend(redisTopic, JSONUtil.toJsonStr(user));
+    &#125;
+    @GetMapping(&quot;/redis/message/listener/exp&quot;)
+    @Operation(summary = &quot;redis监听过期key&quot;)
+    public void redisMessageListenerExp() &#123;
+        SysUser user = iSysUserService.getUser(&quot;zs&quot;);
+        //60秒过期
+        stringRedisTemplate.opsForValue().set(&quot;exp_key_&quot; + RandomUtil.randomNumbers(5), user.getUserName(), 60, TimeUnit.SECONDS);
+    &#125;	
+&#125;
+</code></pre>
 <blockquote>
 <p>控制太答应结果如下</p>
 </blockquote>
@@ -313,7 +434,7 @@ document.addEventListener('pjax:error', (e) => {
   if (e.request.status === 404) {
     pjax.loadUrl('/404.html')
   }
-})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script>
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div>
         <style>
             [bg-lazy] {
                 background-image: none !important;
@@ -326,4 +447,4 @@ document.addEventListener('pjax:error', (e) => {
                 preloadRatio: 1,
                 processImages: null,
             };
-        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script></body></html>
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,n=r.imageLazyLoadSetting.preloadRatio||1,c=a();function a(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=a());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight*n||document.documentElement.clientHeight*n)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function i(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",i),r.addEventListener("resize",i),r.addEventListener("orientationchange",i)}(this);</script><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>
