@@ -4,13 +4,25 @@
   
     
     <entry>
-      <title>缓存Redis相关功能</title>
-      <link href="/liukai/2023/05/25/%E7%BC%93%E5%AD%98Redis%E7%9B%B8%E5%85%B3%E5%8A%9F%E8%83%BD/"/>
-      <url>/liukai/2023/05/25/%E7%BC%93%E5%AD%98Redis%E7%9B%B8%E5%85%B3%E5%8A%9F%E8%83%BD/</url>
+      <title>网云穿设置内网穿透</title>
+      <link href="/liukai/2023/10/02/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%AE%9E%E7%8E%B0/"/>
+      <url>/liukai/2023/10/02/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%AE%9E%E7%8E%B0/</url>
       
-        <content type="html"><![CDATA[]]></content>
+        <content type="html"><![CDATA[<h1 id="记录一次使用网云穿实现内网穿透操作"><a href="#记录一次使用网云穿实现内网穿透操作" class="headerlink" title="记录一次使用网云穿实现内网穿透操作"></a>记录一次使用网云穿实现内网穿透操作</h1><hr><blockquote><p>摘要</p><p>这段时间也很少写博客了,一方面工作表较忙,一方面觉得有些东西在百度上都能找到,甚至比我自己记录的详细,有些笔记也就没打,</p><p>这次记录笔记主要是觉得这个 网云穿 很好用,分享给大家.</p></blockquote><hr><h2 id="1-什么是内网穿透"><a href="#1-什么是内网穿透" class="headerlink" title="1  什么是内网穿透?"></a>1  什么是内网穿透?</h2><blockquote><p>内网穿透也叫内网映射，将本地服务器内网IP端口提供到外网，实现外网连接访问的过程。内网穿透可以将原本只能在本机、本局域网内访问的项目网站等，实现外网也同样可以访问。</p></blockquote><h2 id="2-内网穿透有什么用途"><a href="#2-内网穿透有什么用途" class="headerlink" title="2  内网穿透有什么用途?"></a>2  内网穿透有什么用途?</h2><blockquote><p>最直接的作用就是可以对方可以使用外网直接访问你本地的或者局域网(当然一般需要公网IP);</p><p>举个我的例子,这段时间一直出差,我带的自己的笔记本电脑,但是项目需要和前端联调,我和前端又不在同一局域网下(不在同一网段),这个时候其实解决方式有很多,最常见的一般有两种:</p><ul><li>发测试,前端调用测试进行联调;</li><li>内网穿透,直接调我本地联调;</li></ul><p>第一种解决方式如果公司使用的容器化部署(docker等),并且测试服务器提供的有公网IP可以直接访问这种其实最舒服,IDEA中直接一个运行就发到测试了,也很方便;</p><p>第二种内网穿透就不必多说了,直接调用的我本地,随时随地断点调试;</p><p>我们测试没有公网IP所以我这面做了个内网穿透给前端他们……</p></blockquote><h2 id="3-为什么选择网云穿"><a href="#3-为什么选择网云穿" class="headerlink" title="3  为什么选择网云穿?"></a>3  为什么选择网云穿?</h2><blockquote><p>市面上其实有很多内网穿透工具,比如  花生壳 , OpenFrp,飞鸽等等很多(当然很多都有免费的隧道,和免费的带宽等,你也可以开VIP享受更好的服务)</p><p>我的需求其实很简单就是简单的进行一下远程调试,而且我没有公网IP,我希望这玩意我可以”白嫖”一段时间就行了:</p><ul><li>网云传正好目前注册就送免费的隧道和3M的带宽;</li><li>网云穿还送随机的公网IP给注册的新用户</li></ul></blockquote><h2 id="4-实现"><a href="#4-实现" class="headerlink" title="4 实现"></a>4 实现</h2><blockquote><p>官网: <a href="https://xiaomy.net/">https://xiaomy.net/</a></p></blockquote><h3 id="4-1-注册并获取隧道和公网IP"><a href="#4-1-注册并获取隧道和公网IP" class="headerlink" title="4.1 注册并获取隧道和公网IP"></a>4.1 注册并获取隧道和公网IP</h3><p><img src="https://gitee.com/mrkay0313/images/raw/master/img/20230914221658.png"></p><p><img src="https://gitee.com/mrkay0313/images/raw/master/img/20230914224143.png"></p><p><img src="https://gitee.com/mrkay0313/images/raw/master/img/20230914221832.png"></p><h3 id="4-2-下载-CentOS-Stream-9"><a href="#4-2-下载-CentOS-Stream-9" class="headerlink" title="4.2  下载(CentOS Stream 9 )"></a>4.2  下载(CentOS Stream 9 )</h3><pre><code class="bash">wget -O /usr/local/wyc/ https://down.xiaomy.net/linux/wyc_linux_64</code></pre><h3 id="4-3-编写服务脚本"><a href="#4-3-编写服务脚本" class="headerlink" title="4.3 编写服务脚本"></a>4.3 编写服务脚本</h3><blockquote><p>注意:</p><p>token就是我们上面截图注册开通免费隧道后的令牌</p></blockquote><pre><code class="bash">vim /usr/lib/systemd/system/wyc.service</code></pre><h3 id="4-4-授权"><a href="#4-4-授权" class="headerlink" title="4.4 授权"></a>4.4 授权</h3><pre><code class="bash">chmod 777 wyc.service</code></pre><h3 id="4-5-启动"><a href="#4-5-启动" class="headerlink" title="4.5  启动"></a>4.5  启动</h3><pre><code class="bash">systemctl start wyc.service</code></pre><h3 id="4-6-查看启动状态"><a href="#4-6-查看启动状态" class="headerlink" title="4.6 查看启动状态"></a>4.6 查看启动状态</h3><pre><code class="bash">systemctl status wyc.service</code></pre><p><img src="https://gitee.com/mrkay0313/images/raw/master/img/20230914223927.png"></p><h2 id="5-演示效果"><a href="#5-演示效果" class="headerlink" title="5 演示效果"></a>5 演示效果</h2><blockquote><p>我是使用网云穿映射到我的nginx的地址监听端口的,这样我就能配置多个项目的接口地址路由给前端调试:</p><p>我们直接取到网云穿给我们的随机公网IP访问我们的接口文档试一下就可以</p></blockquote><p><img src="https://gitee.com/mrkay0313/images/raw/master/img/20230914225206.png"></p>]]></content>
       
       
+      <categories>
+          
+          <category> 运维服务器 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 内网穿透 </tag>
+            
+        </tags>
       
     </entry>
     
