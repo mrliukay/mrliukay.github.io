@@ -1,0 +1,471 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CountDownLatch和线程池的简单使用 | LiuKai</title><meta name="author" content="liukai"><meta name="copyright" content="liukai"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="记录一次CountDownLatch和ScheduledExecutorService线程池使用 摘要: 本文主要记录使用ScheduledExecutorService任务调度线程池配合CountDownLatch 计数器实现一次大文件处理的业务.  1 ScheduledExecutorService 介绍 ScheduledExecutorService是基于ExecutorService的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CountDownLatch和线程池的简单使用">
+<meta property="og:url" content="https://gitee.com/mrkay0313/2023/04/18/CountDownLatch%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="LiuKai">
+<meta property="og:description" content="记录一次CountDownLatch和ScheduledExecutorService线程池使用 摘要: 本文主要记录使用ScheduledExecutorService任务调度线程池配合CountDownLatch 计数器实现一次大文件处理的业务.  1 ScheduledExecutorService 介绍 ScheduledExecutorService是基于ExecutorService的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://gitee.com/mrkay0313/images/raw/master/img/20231002142345.png">
+<meta property="article:published_time" content="2023-04-18T06:27:02.000Z">
+<meta property="article:modified_time" content="2023-04-18T08:44:58.443Z">
+<meta property="article:author" content="liukai">
+<meta property="article:tag" content="CountDownLatch">
+<meta property="article:tag" content="ScheduledExecutorService">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://gitee.com/mrkay0313/images/raw/master/img/20231002142345.png"><link rel="shortcut icon" href="http://gitee.com/mrkay0313/images/raw/master/img/favicon.png"><link rel="canonical" href="https://gitee.com/mrkay0313/2023/04/18/CountDownLatch%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/liukai/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/liukai/',
+  algolia: undefined,
+  localSearch: {"path":"/liukai/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CountDownLatch和线程池的简单使用',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-04-18 16:44:58'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="https://mrkay0313.gitee.io/liukai/css/transpancy.css"><meta name="generator" content="Hexo 6.3.0"></head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="http://gitee.com/mrkay0313/images/raw/master/img/avatar.png" onerror="onerror=null;src='http://gitee.com/mrkay0313/images/raw/master/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/liukai/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/liukai/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/liukai/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/liukai/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/archives/"><i class="fa-fw fas fa-archive"></i><span> 博文</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('http://gitee.com/mrkay0313/images/raw/master/img/20231002142345.png')"><nav id="nav"><span id="blog-info"><a href="/liukai/" title="LiuKai"><span class="site-name">LiuKai</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/liukai/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/archives/"><i class="fa-fw fas fa-archive"></i><span> 博文</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/liukai/messageboard/"><i class="fa-fw fa fa-paper-plane"></i><span> 留言板</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">CountDownLatch和线程池的简单使用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-04-18T06:27:02.000Z" title="发表于 2023-04-18 14:27:02">2023-04-18</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-04-18T08:44:58.443Z" title="更新于 2023-04-18 16:44:58">2023-04-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/liukai/categories/%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BA%BF%E7%A8%8B%E6%B1%A0/">多线程线程池</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">字数总计:</span><span class="word-count">1.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="CountDownLatch和线程池的简单使用"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="记录一次CountDownLatch和ScheduledExecutorService线程池使用"><a href="#记录一次CountDownLatch和ScheduledExecutorService线程池使用" class="headerlink" title="记录一次CountDownLatch和ScheduledExecutorService线程池使用"></a>记录一次CountDownLatch和ScheduledExecutorService线程池使用</h1><blockquote>
+<p>摘要:</p>
+<p>本文主要记录使用ScheduledExecutorService任务调度线程池配合CountDownLatch 计数器实现一次大文件处理的业务.</p>
+</blockquote>
+<h2 id="1-ScheduledExecutorService-介绍"><a href="#1-ScheduledExecutorService-介绍" class="headerlink" title="1 ScheduledExecutorService 介绍"></a>1 ScheduledExecutorService 介绍</h2><blockquote>
+<p>ScheduledExecutorService是基于ExecutorService的功能实现的延迟和周期执行任务的功能。每个任务以及每个任务的每个周期都会提交到线程池中由线程去执行，所以任务在不同周期内执行它的线程可能是不同的。ScheduledExecutorService接口的默认实现类是ScheduledThreadPoolExecutor。在周期执行的任务中，如果任务执行时间大于周期时间，则会以任务时间优先，等任务执行完毕后才会进入下一次周期</p>
+<p>参考链接: <a target="_blank" rel="noopener" href="https://blog.csdn.net/liuyu973971883/article/details/108059865">https://blog.csdn.net/liuyu973971883/article/details/108059865</a></p>
+</blockquote>
+<h2 id="2-CountDownLatch-介绍"><a href="#2-CountDownLatch-介绍" class="headerlink" title="2 CountDownLatch 介绍"></a>2 CountDownLatch 介绍</h2><blockquote>
+<p>CountDownLatch是一个同步工具类，用来协调多个线程之间的同步，或者说起到线程之间的通信（而不是用作互斥的作用）。</p>
+<p>CountDownLatch能够使一个线程在等待另外一些线程完成各自工作之后，再继续执行。使用一个计数器进行实现。计数器初始值为线程的数量。当每一个线程完成自己任务后，计数器的值就会减一。当计数器的值为0时，表示所有的线程都已经完成一些任务，然后在CountDownLatch上等待的线程就可以恢复执行接下来的任务。</p>
+</blockquote>
+<h3 id="2-1-典型用法"><a href="#2-1-典型用法" class="headerlink" title="2.1 典型用法"></a>2.1 典型用法</h3><blockquote>
+<p>CountDownLatch典型用法：1、某一线程在开始运行前等待n个线程执行完毕。将CountDownLatch的计数器初始化为new CountDownLatch(n)，每当一个任务线程执行完毕，就将计数器减1 countdownLatch.countDown()，当计数器的值变为0时，在CountDownLatch上await()的线程就会被唤醒。一个典型应用场景就是启动一个服务时，主线程需要等待多个组件加载完毕，之后再继续执行。</p>
+</blockquote>
+<blockquote>
+<p>CountDownLatch典型用法：2、实现多个线程开始执行任务的最大并行性。注意是并行性，不是并发，强调的是多个线程在某一时刻同时开始执行。类似于赛跑，将多个线程放到起点，等待发令枪响，然后同时开跑。做法是初始化一个共享的CountDownLatch(1)，将其计算器初始化为1，多个线程在开始执行任务前首先countdownlatch.await()，当主线程调用countDown()时，计数器变为0，多个线程同时被唤醒。</p>
+</blockquote>
+<blockquote>
+<p>资料参考链接: <a target="_blank" rel="noopener" href="https://www.cnblogs.com/Lee_xy_z/p/10470181.html">https://www.cnblogs.com/Lee_xy_z/p/10470181.html</a></p>
+</blockquote>
+<h2 id="3-具体到业务"><a href="#3-具体到业务" class="headerlink" title="3 具体到业务"></a>3 具体到业务</h2><blockquote>
+<p>本次使用任务调度线程池和线程计数器的背景是项目中需要解析一个超大json文件,</p>
+<p>文件中有超过10W个不规则图形组成的大的地图模型json(模型提供的地图map文件,单文件大小近80M,不规则图形的每一个点对应一个经纬度),我的任务就是判断DB表里的一些点,哪些在此大的地图map中(json图形中,不是点对点是点在地图范围内)</p>
+<p>解决此类问题单线程解决肯定不可行,所以就使用了多线程,当时需要拆分大的json文件,经过查阅资料了解到任务调度线程池更契合本次业务需求,最终选择使用CountDownLatch 线程计数器配合ScheduledExecutorService完成业务</p>
+</blockquote>
+<h3 id="3-1-简单罗列主要业务代码"><a href="#3-1-简单罗列主要业务代码" class="headerlink" title="3.1 简单罗列主要业务代码"></a>3.1 简单罗列主要业务代码</h3><pre><code class="highlight java"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PreviewModelServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">PreviewModelService</span> &#123;
+     <span class="meta">@Override</span>
+    <span class="keyword">public</span> Integer <span class="title function_">callBack</span><span class="params">(HttpServletRequest request)</span> &#123;
+        <span class="type">JSONObject</span> <span class="variable">jsonObject</span> <span class="operator">=</span> ModelGetBodyParamsUtil.getBodyParamToJsonObj(request);
+        <span class="keyword">if</span> (jsonObject != <span class="literal">null</span>) &#123;
+            <span class="type">String</span> <span class="variable">taskId</span> <span class="operator">=</span> jsonObject.getStr(<span class="string">&quot;taskId&quot;</span>);
+            <span class="type">String</span> <span class="variable">status</span> <span class="operator">=</span> jsonObject.getStr(<span class="string">&quot;status&quot;</span>);
+            <span class="comment">//阻塞线程执行 保证多线程执行期间不会有其他线程进入</span>
+            <span class="keyword">synchronized</span> (<span class="built_in">this</span>) &#123;
+                <span class="keyword">if</span> (ModelDealEnum.DEAL_STATUS_SUCCESS.getValue().equals(status)) &#123;
+                    <span class="comment">//根据idx查找是已经推送获取过结果</span>
+                    List&lt;ModelAnalyzeResultIdx&gt; pushedList = modelAnalyzeResultIdxMapper.selectPushedDatasByIdx(taskId);
+                    <span class="keyword">if</span> (CollUtil.isNotEmpty(pushedList)) &#123;
+                        <span class="comment">//解析数据并入库</span>
+                        <span class="type">ModelAnalyzeResultIdx</span> <span class="variable">source</span> <span class="operator">=</span> pushedList.get(<span class="number">0</span>);
+                        <span class="keyword">try</span> &#123;
+                            <span class="comment">//获取floodRisk积水风险统计geoJson(多线程进行处理GeoJson)</span>
+                            List&lt;WaterPoint&gt; waterPoints = analyzeService.analyzeGeoJsonDatas(source);
+                        &#125; <span class="keyword">catch</span> (Exception e) &#123;
+                            log.error(<span class="string">&quot;模型解析错误&quot;</span>, e);
+                        &#125;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+        <span class="keyword">return</span> <span class="number">0</span>;
+    &#125;
+&#125;</code></pre>
+
+<pre><code class="highlight java"><span class="keyword">package</span> com.keepsoft.devbase.service.impl;
+
+<span class="keyword">import</span> cn.hutool.core.collection.CollUtil;
+<span class="keyword">import</span> cn.hutool.core.util.StrUtil;
+<span class="keyword">import</span> cn.hutool.crypto.digest.MD5;
+<span class="keyword">import</span> cn.hutool.http.HttpResponse;
+<span class="keyword">import</span> cn.hutool.http.HttpUtil;
+<span class="keyword">import</span> cn.hutool.json.JSONArray;
+<span class="keyword">import</span> cn.hutool.json.JSONObject;
+<span class="keyword">import</span> cn.hutool.json.JSONUtil;
+<span class="keyword">import</span> com.baomidou.dynamic.datasource.annotation.DS;
+<span class="keyword">import</span> com.keepsoft.devbase.entity.ModelAnalyzeResultIdx;
+<span class="keyword">import</span> com.keepsoft.devbase.entity.ModelDataPng;
+<span class="keyword">import</span> com.keepsoft.devbase.entity.ModelFileResultIdx;
+<span class="keyword">import</span> com.keepsoft.devbase.entity.WaterPoint;
+<span class="keyword">import</span> com.keepsoft.devbase.enums.ModelDealEnum;
+<span class="keyword">import</span> com.keepsoft.devbase.mapper.ModelAnalyzeResultIdxMapper;
+<span class="keyword">import</span> com.keepsoft.devbase.mapper.ModelDataPngMapper;
+<span class="keyword">import</span> com.keepsoft.devbase.mapper.ModelFileResultIdxMapper;
+<span class="keyword">import</span> com.keepsoft.devbase.mapper.WaterPointMapper;
+<span class="keyword">import</span> com.keepsoft.devbase.service.AnalyzeService;
+<span class="keyword">import</span> com.keepsoft.devbase.task.ModelGeoJsonDealTask;
+<span class="keyword">import</span> com.keepsoft.devbase.utils.ConfigUtils;
+<span class="keyword">import</span> com.keepsoft.devbase.utils.GeoJsonUtil;
+<span class="keyword">import</span> com.keepsoft.devbase.utils.ZipFileUtils;
+<span class="keyword">import</span> lombok.extern.slf4j.Slf4j;
+<span class="keyword">import</span> org.apache.commons.lang3.concurrent.BasicThreadFactory;
+<span class="keyword">import</span> org.springframework.beans.factory.annotation.Value;
+<span class="keyword">import</span> org.springframework.stereotype.Service;
+
+<span class="keyword">import</span> javax.annotation.Resource;
+<span class="keyword">import</span> java.io.File;
+<span class="keyword">import</span> java.io.FileInputStream;
+<span class="keyword">import</span> java.io.FileOutputStream;
+<span class="keyword">import</span> java.io.IOException;
+<span class="keyword">import</span> java.util.*;
+<span class="keyword">import</span> java.util.concurrent.CountDownLatch;
+<span class="keyword">import</span> java.util.concurrent.ScheduledExecutorService;
+<span class="keyword">import</span> java.util.concurrent.ScheduledThreadPoolExecutor;
+
+<span class="comment">/**</span>
+<span class="comment"> * <span class="doctag">@author</span> liukai</span>
+<span class="comment"> * <span class="doctag">@date</span> 2022/11/24 10:05</span>
+<span class="comment"> */</span>
+<span class="meta">@SuppressWarnings(&quot;all&quot;)</span>
+<span class="meta">@Slf4j</span>
+<span class="meta">@Service</span>
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AnalyzeServiceImpl</span> <span class="keyword">implements</span> <span class="title class_">AnalyzeService</span> &#123;
+    <span class="comment">/**</span>
+<span class="comment">     * 创建线程池</span>
+<span class="comment">     */</span>
+    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">ScheduledExecutorService</span> <span class="variable">executorService</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ScheduledThreadPoolExecutor</span>(<span class="number">12</span>, <span class="keyword">new</span> <span class="title class_">BasicThreadFactory</span>.Builder().namingPattern(<span class="string">&quot;model-geojson-analyze-pool-%d&quot;</span>).daemon(<span class="literal">true</span>).build());
+
+    <span class="meta">@Override</span>
+    <span class="meta">@DS(value = &quot;hsyb&quot;)</span>
+    <span class="keyword">public</span> List&lt;WaterPoint&gt; <span class="title function_">analyzeGeoJsonDatas</span><span class="params">(ModelAnalyzeResultIdx source)</span> <span class="keyword">throws</span> Exception &#123;
+        <span class="comment">//coding ...</span>
+        <span class="comment">//需要多线程处理</span>
+        <span class="keyword">if</span> (GeoJsonUtil.needMultiThreadDeal(allReseaus)) &#123;
+            List&lt;List&lt;List&lt;JSONArray&gt;&gt;&gt; splitContainer = GeoJsonUtil.split(allReseaus, <span class="number">20000</span>);
+            <span class="comment">//计数器:所有子线程开始处理数据集等待计数结束之后主线程开始执行</span>
+            List&lt;WaterPoint&gt; waterPoints = waterPointMapper.selectList(<span class="literal">null</span>);
+            <span class="type">CountDownLatch</span> <span class="variable">latch</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CountDownLatch</span>(splitContainer.size());
+            List&lt;ModelGeoJsonDealTask&gt; taskList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;ModelGeoJsonDealTask&gt;(splitContainer.size());
+            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; splitContainer.size(); i++) &#123;
+                <span class="type">ModelGeoJsonDealTask</span> <span class="variable">task_i</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ModelGeoJsonDealTask</span>(<span class="literal">true</span>, latch, splitContainer.get(i), waterPoints);
+                taskList.add(task_i);
+                <span class="comment">//执行</span>
+                executorService.submit(task_i);
+            &#125;
+            <span class="comment">//阻塞主线程</span>
+            latch.await();
+            <span class="comment">//主线程开始处理</span>
+            <span class="comment">//coding ...</span>
+    		&#125;
+    &#125;
+&#125;</code></pre>
+
+<pre><code class="highlight java"><span class="comment">/**</span>
+<span class="comment"> * GeoJson处理线程</span>
+<span class="comment"> *</span>
+<span class="comment"> * <span class="doctag">@author</span> liukai</span>
+<span class="comment"> * <span class="doctag">@date</span> 2022/12/1 9:25</span>
+<span class="comment"> */</span>
+<span class="meta">@Slf4j</span>
+<span class="meta">@Data</span>
+<span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ModelGeoJsonDealTask</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;
+    <span class="comment">/**</span>
+<span class="comment">     * 成功标识</span>
+<span class="comment">     */</span>
+    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">success</span> <span class="operator">=</span> <span class="literal">true</span>;
+
+    <span class="comment">/**</span>
+<span class="comment">     * 线程计数器</span>
+<span class="comment">     */</span>
+    <span class="keyword">private</span> CountDownLatch countDownLatch;
+
+    <span class="comment">/**</span>
+<span class="comment">     * 待处理数据集</span>
+<span class="comment">     */</span>
+    <span class="keyword">private</span> List&lt;List&lt;JSONArray&gt;&gt; toDealList;
+
+    <span class="comment">/**</span>
+<span class="comment">     * 内涝点</span>
+<span class="comment">     */</span>
+    <span class="keyword">private</span> List&lt;WaterPoint&gt; waterPoints;
+
+    <span class="comment">/**</span>
+<span class="comment">     * 线程得到的在网格内的内涝点</span>
+<span class="comment">     */</span>
+    <span class="keyword">private</span> List&lt;WaterPoint&gt; inReseauWaterPoints = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;WaterPoint&gt;();
+
+    <span class="comment">/**</span>
+<span class="comment">     * 最终结果容器</span>
+<span class="comment">     */</span>
+    <span class="keyword">private</span> List&lt;List&lt;String&gt;&gt; resultList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;List&lt;String&gt;&gt;();
+
+
+    <span class="keyword">public</span> <span class="title function_">ModelGeoJsonDealTask</span><span class="params">(<span class="type">boolean</span> success, CountDownLatch countDownLatch, List&lt;List&lt;JSONArray&gt;&gt; toDealList, List&lt;WaterPoint&gt; waterPoints)</span> &#123;
+        <span class="built_in">this</span>.success = success;
+        <span class="built_in">this</span>.countDownLatch = countDownLatch;
+        <span class="built_in">this</span>.toDealList = toDealList;
+        <span class="built_in">this</span>.waterPoints = waterPoints;
+    &#125;
+
+    <span class="meta">@Override</span>
+    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;
+        <span class="keyword">try</span> &#123;
+            <span class="type">long</span> <span class="variable">stms</span> <span class="operator">=</span> System.currentTimeMillis();
+            log.info(<span class="string">&quot;======处理geojson线程：【&#123;&#125;】开始执行解析，当前时间(毫秒值)：【&#123;&#125;】&quot;</span>, Thread.currentThread().getName(), stms);
+            <span class="comment">//拼网格</span>
+            GeoJsonUtil.spliceReseausAndDecidePointInReseau(toDealList, resultList, waterPoints, inReseauWaterPoints);
+
+            <span class="type">long</span> <span class="variable">endms</span> <span class="operator">=</span> System.currentTimeMillis();
+            <span class="type">long</span> <span class="variable">during</span> <span class="operator">=</span> (endms - stms) / <span class="number">1000</span>;
+            log.info(<span class="string">&quot;======处理geojson线程：【&#123;&#125;】解析执行结束，当前时间(毫秒值)：【&#123;&#125;ms】，用时：【&#123;&#125;s】&quot;</span>, Thread.currentThread().getName(), endms, during);
+        &#125; <span class="keyword">catch</span> (Exception e) &#123;
+            log.error(<span class="string">&quot;处理geojson线程:【&#123;&#125;】,处理geojson发生异常:&quot;</span>, Thread.currentThread().getName(), e);
+            <span class="comment">//失败</span>
+            success = <span class="literal">false</span>;
+        &#125; <span class="keyword">finally</span> &#123;
+            <span class="comment">//计数器减1</span>
+            countDownLatch.countDown();
+        &#125;
+    &#125;
+&#125;
+</code></pre>
+
+<h2 id="4-结束语"><a href="#4-结束语" class="headerlink" title="4 结束语"></a>4 结束语</h2><blockquote>
+<p>本文只是见到那记录 ScheduledExecutorService 和 CountDownLatch 的使用具体详细概念并没有做详细学习,后期会多线程篇章里深入学习记录.</p>
+</blockquote>
+<h2 id="5-参考链接"><a href="#5-参考链接" class="headerlink" title="5 参考链接"></a>5 参考链接</h2><blockquote>
+<p> <a target="_blank" rel="noopener" href="https://blog.csdn.net/liuyu973971883/article/details/108059865">https://blog.csdn.net/liuyu973971883/article/details/108059865</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Lee_xy_z/p/10470181.html">https://www.cnblogs.com/Lee_xy_z/p/10470181.html</a></p>
+</blockquote>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://gitee.com/mrkay0313">liukai</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://gitee.com/mrkay0313/2023/04/18/CountDownLatch%E5%92%8C%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/">https://gitee.com/mrkay0313/2023/04/18/CountDownLatch和线程池的简单使用/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://gitee.com/mrkay0313" target="_blank">LiuKai</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/liukai/tags/CountDownLatch/">CountDownLatch</a><a class="post-meta__tags" href="/liukai/tags/ScheduledExecutorService/">ScheduledExecutorService</a></div><div class="post_share"><div class="social-share" data-image="http://gitee.com/mrkay0313/images/raw/master/img/20231002142345.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="http://gitee.com/mrkay0313/images/raw/master/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="http://gitee.com/mrkay0313/images/raw/master/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="http://gitee.com/mrkay0313/images/raw/master/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="http://gitee.com/mrkay0313/images/raw/master/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/liukai/2023/04/20/%E8%AE%A2%E5%8D%95%E8%B6%85%E6%97%B6%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88-RabbitMQ%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97/" title="订单超时解决方案-RabbitMQ死信队列"><img class="cover" src="http://gitee.com/mrkay0313/images/raw/master/img/20231002142345.png" onerror="onerror=null;src='/liukai/'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">订单超时解决方案-RabbitMQ死信队列</div></div></a></div><div class="next-post pull-right"><a href="/liukai/2023/04/15/Redis%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85%E5%92%8CRedis%E7%9B%91%E5%90%AC/" title="Redis发布订阅和Redis监听"><img class="cover" src="http://gitee.com/mrkay0313/images/raw/master/img/20231002142345.png" onerror="onerror=null;src='/liukai/'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Redis发布订阅和Redis监听</div></div></a></div></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="http://gitee.com/mrkay0313/images/raw/master/img/avatar.png" onerror="this.onerror=null;this.src='http://gitee.com/mrkay0313/images/raw/master/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liukai</div><div class="author-info__description">一个不掉头发的Java程序员~~~</div></div><div class="card-info-data site-data is-center"><a href="/liukai/archives/"><div class="headline">文章</div><div class="length-num">13</div></a><a href="/liukai/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/liukai/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/mrkay001"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://blog.csdn.net/weixin_44848900" target="_blank" title="CSDN"><i class="fa fa-book-open"></i></a><a class="social-icon" href="mailto:1319897531@qq.com" target="_blank" title="Email"><i class="fas fa-envelope-open-text"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">感谢各位百忙之中浏览本人博客，博客基于hexo构建。主要用于记录个人技术总结，如果图片出不来可能是缓存原因请刷新页面或者清理浏览器缓存试一下哦~~~最后左下角可以和博主一起"网抑云"哦~~~</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1CountDownLatch%E5%92%8CScheduledExecutorService%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8"><span class="toc-text">记录一次CountDownLatch和ScheduledExecutorService线程池使用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-ScheduledExecutorService-%E4%BB%8B%E7%BB%8D"><span class="toc-text">1 ScheduledExecutorService 介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-CountDownLatch-%E4%BB%8B%E7%BB%8D"><span class="toc-text">2 CountDownLatch 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%85%B8%E5%9E%8B%E7%94%A8%E6%B3%95"><span class="toc-text">2.1 典型用法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%85%B7%E4%BD%93%E5%88%B0%E4%B8%9A%E5%8A%A1"><span class="toc-text">3 具体到业务</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%AE%80%E5%8D%95%E7%BD%97%E5%88%97%E4%B8%BB%E8%A6%81%E4%B8%9A%E5%8A%A1%E4%BB%A3%E7%A0%81"><span class="toc-text">3.1 简单罗列主要业务代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%BB%93%E6%9D%9F%E8%AF%AD"><span class="toc-text">4 结束语</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="toc-text">5 参考链接</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/liukai/2023/10/02/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%AE%9E%E7%8E%B0/" title="网云穿设置内网穿透"><img src="https://gitee.com/mrkay0313/images/raw/master/img/20230914223927.png" onerror="this.onerror=null;this.src='/liukai/'" alt="网云穿设置内网穿透"/></a><div class="content"><a class="title" href="/liukai/2023/10/02/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F%E5%AE%9E%E7%8E%B0/" title="网云穿设置内网穿透">网云穿设置内网穿透</a><time datetime="2023-10-02T02:22:05.000Z" title="发表于 2023-10-02 10:22:05">2023-10-02</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/liukai/2023/05/25/OpenFeign/" title="OpenFeign"><img src="http://gitee.com/mrkay0313/images/raw/master/img/20231002142345.png" onerror="this.onerror=null;this.src='/liukai/'" alt="OpenFeign"/></a><div class="content"><a class="title" href="/liukai/2023/05/25/OpenFeign/" title="OpenFeign">OpenFeign</a><time datetime="2023-05-25T15:06:04.000Z" title="发表于 2023-05-25 23:06:04">2023-05-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/liukai/2023/05/20/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="SPEL表达式"><img src="http://gitee.com/mrkay0313/images/raw/master/img/20231002142415.png" onerror="this.onerror=null;this.src='/liukai/'" alt="SPEL表达式"/></a><div class="content"><a class="title" href="/liukai/2023/05/20/SPEL%E8%A1%A8%E8%BE%BE%E5%BC%8F/" title="SPEL表达式">SPEL表达式</a><time datetime="2023-05-20T14:37:10.000Z" title="发表于 2023-05-20 22:37:10">2023-05-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/liukai/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-Gateway%E8%B6%85%E6%97%B6%E9%85%8D%E7%BD%AE/" title="Pig开源项目-Gateway超时配置"><img src="http://gitee.com/mrkay0313/images/raw/master/img/20231002142415.png" onerror="this.onerror=null;this.src='/liukai/'" alt="Pig开源项目-Gateway超时配置"/></a><div class="content"><a class="title" href="/liukai/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-Gateway%E8%B6%85%E6%97%B6%E9%85%8D%E7%BD%AE/" title="Pig开源项目-Gateway超时配置">Pig开源项目-Gateway超时配置</a><time datetime="2023-05-14T15:47:32.000Z" title="发表于 2023-05-14 23:47:32">2023-05-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/liukai/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-%E7%BD%91%E5%85%B3%E9%99%90%E6%B5%81/" title="Pig开源项目-网关限流"><img src="http://gitee.com/mrkay0313/images/raw/master/img/20231002142345.png" onerror="this.onerror=null;this.src='/liukai/'" alt="Pig开源项目-网关限流"/></a><div class="content"><a class="title" href="/liukai/2023/05/14/Pig%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE-%E7%BD%91%E5%85%B3%E9%99%90%E6%B5%81/" title="Pig开源项目-网关限流">Pig开源项目-网关限流</a><time datetime="2023-05-14T09:01:09.000Z" title="发表于 2023-05-14 17:01:09">2023-05-14</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2019 - 2023 By liukai</div><div class="footer_custom_text">~~人生短短数十年,技术永远学不完~~</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/liukai/js/utils.js"></script><script src="/liukai/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><div class="js-pjax"><script>function loadValine () {
+  function initValine () {
+    const valine = new Valine(Object.assign({
+      el: '#vcomment',
+      appId: 'kV0qJPnJq3UpcWNA8u5qQNmP-gzGzoHsz',
+      appKey: 'hsLgjrxRw2gxE09ra5jgc2IJ',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      path: window.location.pathname,
+      visitor: false
+    }, null))
+  }
+
+  if (typeof Valine === 'function') initValine() 
+  else getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js').then(initValine)
+}
+
+if ('Valine' === 'Valine' || !false) {
+  if (false) btf.loadComment(document.getElementById('vcomment'),loadValine)
+  else setTimeout(loadValine, 0)
+} else {
+  function loadOtherComment () {
+    loadValine()
+  }
+}</script></div><div class="aplayer no-destroy" data-id="8301894281" data-server="netease" data-type="playlist" data-fixed="true" data-autoplay="true" data-lrcType="-1"> </div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = true;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script id="click-show-text" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-show-text.min.js" data-mobile="false" data-text="富强,民主,文明,和谐,平等,公正,法治,爱国,敬业,诚信,友善" data-fontsize="15px" data-random="false" async="async"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script src="https://cdn.jsdelivr.net/npm/pjax/pjax.min.js"></script><script>let pjaxSelectors = ["head > title","#config-diff","#body-wrap","#rightside-config-hide","#rightside-config-show",".js-pjax"]
+
+var pjax = new Pjax({
+  elements: 'a:not([target="_blank"])',
+  selectors: pjaxSelectors,
+  cacheBust: false,
+  analytics: false,
+  scrollRestoration: false
+})
+
+document.addEventListener('pjax:send', function () {
+
+  // removeEventListener scroll 
+  window.tocScrollFn && window.removeEventListener('scroll', window.tocScrollFn)
+  window.scrollCollect && window.removeEventListener('scroll', scrollCollect)
+
+  document.getElementById('rightside').style.cssText = "opacity: ''; transform: ''"
+  
+  if (window.aplayers) {
+    for (let i = 0; i < window.aplayers.length; i++) {
+      if (!window.aplayers[i].options.fixed) {
+        window.aplayers[i].destroy()
+      }
+    }
+  }
+
+  typeof typed === 'object' && typed.destroy()
+
+  //reset readmode
+  const $bodyClassList = document.body.classList
+  $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+
+  typeof disqusjs === 'object' && disqusjs.destroy()
+})
+
+document.addEventListener('pjax:complete', function () {
+  window.refreshFn()
+
+  document.querySelectorAll('script[data-pjax]').forEach(item => {
+    const newScript = document.createElement('script')
+    const content = item.text || item.textContent || item.innerHTML || ""
+    Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+    newScript.appendChild(document.createTextNode(content))
+    item.parentNode.replaceChild(newScript, item)
+  })
+
+  GLOBAL_CONFIG.islazyload && window.lazyLoadInstance.update()
+
+  typeof panguInit === 'function' && panguInit()
+
+  // google analytics
+  typeof gtag === 'function' && gtag('config', '', {'page_path': window.location.pathname});
+
+  // baidu analytics
+  typeof _hmt === 'object' && _hmt.push(['_trackPageview',window.location.pathname]);
+
+  typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting()
+
+  // prismjs
+  typeof Prism === 'object' && Prism.highlightAll()
+})
+
+document.addEventListener('pjax:error', (e) => {
+  if (e.request.status === 404) {
+    pjax.loadUrl('/404.html')
+  }
+})</script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/liukai/js/search/local-search.js"></script></div></div><script src="/liukai/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"debug":false,"model":{"jsonPath":"/liukai/live2dw/assets/koharu.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7},"log":false});</script></body></html>
